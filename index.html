@@ -160,34 +160,52 @@ const PROGRAM = {
 function svgFigure(inner) {
   return `<svg viewBox="0 0 100 140" width="100%" height="180" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">${inner}</svg>`;
 }
-// animTo (optional): if given, the polyline starts at pts and loops pts→animTo→pts
-// via native SVG SMIL animation — no JS/CSS keyframes needed, works in Safari.
-function bone(pts, color, animTo, dur) {
-  const anim = animTo ? `<animate attributeName="points" values="${pts};${animTo};${pts}" dur="${dur || '2.6s'}" repeatCount="indefinite"/>` : '';
-  return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">${anim}</polyline>`;
+// frames (optional): a single point-string, or an array of them for movements
+// that alternate sides (e.g. punch left, then punch right). The polyline loops
+// base→frame1→base→frame2→base... via native SVG SMIL — no JS/CSS keyframes,
+// works in Safari.
+function bone(basePts, color, frames, dur) {
+  let anim = '';
+  if (frames) {
+    const list = Array.isArray(frames) ? frames : [frames];
+    const values = [basePts, ...list.flatMap(f => [f, basePts])].join(';');
+    anim = `<animate attributeName="points" values="${values}" dur="${dur || '2.6s'}" repeatCount="indefinite"/>`;
+  }
+  return `<polyline points="${basePts}" fill="none" stroke="${color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">${anim}</polyline>`;
 }
-function headC(cx, cy, color, animCx, animCy, dur) {
-  const ax = animCx != null ? `<animate attributeName="cx" values="${cx};${animCx};${cx}" dur="${dur || '2.6s'}" repeatCount="indefinite"/>` : '';
-  const ay = animCy != null ? `<animate attributeName="cy" values="${cy};${animCy};${cy}" dur="${dur || '2.6s'}" repeatCount="indefinite"/>` : '';
-  return `<circle cx="${cx}" cy="${cy}" r="9" fill="none" stroke="${color}" stroke-width="4">${ax}${ay}</circle>`;
+function headC(baseCx, baseCy, color, framesCx, framesCy, dur) {
+  let animX = '', animY = '';
+  if (framesCx != null) {
+    const listX = Array.isArray(framesCx) ? framesCx : [framesCx];
+    const listY = Array.isArray(framesCy) ? framesCy : [framesCy];
+    const valuesX = [baseCx, ...listX.flatMap(v => [v, baseCx])].join(';');
+    const valuesY = [baseCy, ...listY.flatMap(v => [v, baseCy])].join(';');
+    animX = `<animate attributeName="cx" values="${valuesX}" dur="${dur || '2.6s'}" repeatCount="indefinite"/>`;
+    animY = `<animate attributeName="cy" values="${valuesY}" dur="${dur || '2.6s'}" repeatCount="indefinite"/>`;
+  }
+  return `<circle cx="${baseCx}" cy="${baseCy}" r="9" fill="none" stroke="${color}" stroke-width="4">${animX}${animY}</circle>`;
 }
 function groundLine() {
   return `<line x1="15" y1="132" x2="85" y2="132" stroke="${T.hairline}" stroke-width="2" stroke-linecap="round"/>`;
 }
 const LEGS_NARROW = () => bone('50,75 43,105 40,130', T.fg) + bone('50,75 57,105 60,130', T.fg);
 const LEGS_HORSE  = () => bone('50,75 30,100 22,130', T.fg) + bone('50,75 70,100 78,130', T.fg);
-const NEUTRAL_ARM_L = '40,36 34,55 32,70';
-const NEUTRAL_ARM_R = '60,36 66,55 68,70';
 
-// On the timer screen (animated=true) the figure loops neutral→active→neutral
-// via SMIL so there's something to move with in real time, not just a static
-// reference pose. On the preview screen (animated=false/undefined) it's the
-// same static "active pose" diagram as before — unchanged.
-function movingBone(neutralPts, activePts, color, animated, dur) {
-  return animated ? bone(neutralPts, color, activePts, dur) : bone(activePts, color);
+// On the timer screen (animated=true) the figure loops neutral→pose(s)→neutral
+// via SMIL so there's something to move with in real time — the full range of
+// the movement, both sides when the exercise alternates. On the preview screen
+// (animated=false/undefined) it's a single static reference pose (frames[0]).
+function movingBone(neutralPts, activeFrames, color, animated, dur) {
+  if (!animated) return bone(Array.isArray(activeFrames) ? activeFrames[0] : activeFrames, color);
+  return bone(neutralPts, color, activeFrames, dur);
 }
-function movingHead(nCx, nCy, aCx, aCy, color, animated, dur) {
-  return animated ? headC(nCx, nCy, color, aCx, aCy, dur) : headC(aCx, aCy, color);
+function movingHead(nCx, nCy, activeCxFrames, activeCyFrames, color, animated, dur) {
+  if (!animated) {
+    const cx = Array.isArray(activeCxFrames) ? activeCxFrames[0] : activeCxFrames;
+    const cy = Array.isArray(activeCyFrames) ? activeCyFrames[0] : activeCyFrames;
+    return headC(cx, cy, color);
+  }
+  return headC(nCx, nCy, color, activeCxFrames, activeCyFrames, dur);
 }
 
 function getExInfo(name) {
@@ -197,59 +215,68 @@ function getExInfo(name) {
 const EX_INFO = {
   'שתי ידיים תומכות בשמיים': {
     desc: 'עמדו עם הרגליים ברוחב הכתפיים, שזרו את האצבעות והפנו את כפות הידיים כלפי מעלה מול הבטן. שאפו אוויר תוך כדי לחיצת כפות הידיים מעלה, ישרו את כל עמוד השדרה. נשפו תוך כדי הפרדת הידיים והורדתן בחזרה. התחילו מעמידה זקופה ורגועה לפני החזרה הראשונה.',
+    // Neutral = hands meeting at the belly (the real starting point), not arms
+    // hanging at the sides — animates the full belly→overhead→belly rep.
     illo: (animated) => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg) + headC(50,18,T.fg)
-      + movingBone(NEUTRAL_ARM_L, '40,36 28,22 32,6', T.accent, animated)
-      + movingBone(NEUTRAL_ARM_R, '60,36 72,22 68,6', T.accent, animated)),
+      + movingBone('40,36 44,50 48,62', '40,36 28,22 32,6', T.accent, animated)
+      + movingBone('60,36 56,50 52,62', '60,36 72,22 68,6', T.accent, animated)),
   },
   'מתיחת הקשת לירות בנץ': {
     desc: 'מעמידת פרשה, הצליבו את הזרועות מול החזה. מתחו זרוע אחת הצידה כאילו מותחים קשת, בעוד היד השנייה מושכת אחורה כמו אוחזת במיתר. נשפו במלואו בכל מתיחה, ואז החליפו צד.',
+    // Neutral = arms crossed at the chest. Alternates: draw right / draw left.
     illo: (animated) => svgFigure(groundLine() + LEGS_HORSE() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
-      + movingBone(NEUTRAL_ARM_R, '60,36 78,32 96,30', T.accent, animated)
-      + movingBone(NEUTRAL_ARM_L, '40,36 26,44 20,54', T.accent, animated)),
+      + movingBone('60,36 50,42 42,44', ['60,36 78,32 96,30', '60,36 74,44 80,54'], T.accent, animated)
+      + movingBone('40,36 50,44 58,46', ['40,36 26,44 20,54', '40,36 22,32 4,30'], T.accent, animated)),
   },
   'הפרדת שמיים וארץ': {
     desc: 'עמידה זקופה, הרימו זרוע אחת מעלה עם כף היד לוחצת כלפי מעלה, בעוד היד השנייה לוחצת כלפי מטה לצד גופכם. הרגישו את עמוד השדרה מתארך בין שתי הלחיצות, ואז החליפו צד.',
+    // Neutral = hands together at the chest. Alternates which arm presses up vs down.
     illo: (animated) => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
-      + movingBone(NEUTRAL_ARM_R, '60,36 68,20 62,4', T.accent, animated)
-      + movingBone(NEUTRAL_ARM_L, '40,36 34,54 28,70', T.accent, animated)),
+      + movingBone('60,36 52,44 50,50', ['60,36 68,20 62,4', '60,36 66,54 72,70'], T.accent, animated)
+      + movingBone('40,36 48,44 50,50', ['40,36 34,54 28,70', '40,36 32,20 38,4'], T.accent, animated)),
   },
   'הינשוף החכם מביט לאחור': {
     desc: 'עמדו רגועים עם הידיים לצדי הגוף. סובבו לאט את הראש להביט מאחוריכם מעל כתף אחת, תוך שמירה על האגן פונה קדימה. חזרו למרכז וחזרו על הצד השני.',
+    // Head turns to both sides in turn, not just one.
     illo: (animated) => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg)
       + bone('40,36 34,55 32,70', T.fg) + bone('60,36 66,55 68,70', T.fg)
-      + movingHead(50,20, 58,20, T.accent, animated)
+      + movingHead(50,20, [58,42], [20,20], T.accent, animated)
       + (animated
-          ? `<polyline points="70,16 80,20 74,26" fill="none" stroke="${T.accent}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="opacity" values="0;0;1;1;0" dur="2.6s" repeatCount="indefinite"/></polyline>`
+          ? `<polyline points="70,16 80,20 74,26" fill="none" stroke="${T.accent}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="opacity" values="0;1;0;0;0" dur="2.6s" repeatCount="indefinite"/></polyline>`
+            + `<polyline points="30,16 20,20 26,26" fill="none" stroke="${T.accent}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="opacity" values="0;0;0;1;0" dur="2.6s" repeatCount="indefinite"/></polyline>`
           : bone('70,16 80,20 74,26', T.accent))),
   },
   'נדנוד הראש וניעור הזנב': {
     desc: 'מעמידת פרשה נמוכה, הטו את הגו מעט קדימה וסובבו את הראש והגו העליון בקשת רחבה לצד אחד, כאילו מנערים חום דרך עצם הזנב. החליפו צדדים לאט.',
+    // Torso sways through both sides of the arc, not just one.
     illo: (animated) => svgFigure(groundLine() + LEGS_HORSE()
-      + movingBone('50,75 50,42 50,18', '50,75 32,42 22,18', T.accent, animated)
-      + movingHead(50,18, 22,18, T.accent, animated)
-      + movingBone('50,42 34,58', '32,42 16,58', T.fg, animated)
-      + movingBone('50,42 66,58', '32,42 50,62', T.fg, animated)),
+      + movingBone('50,75 50,42 50,18', ['50,75 68,42 78,18', '50,75 32,42 22,18'], T.accent, animated)
+      + movingHead(50,18, [78,22], [18,18], T.accent, animated)
+      + movingBone('50,42 34,58', ['68,42 84,58', '32,42 16,58'], T.fg, animated)
+      + movingBone('50,42 66,58', ['68,42 50,62', '32,42 50,62'], T.fg, animated)),
   },
   'שתי ידיים אוחזות בכפות הרגליים': {
     desc: 'התכופפו קדימה מהמותניים ושלחו את שתי הידיים לעבר כפות הרגליים, הברכיים רכות. לאחר מכן הפכו את התנועה, החליקו את הידיים במעלה הרגליים והגב עד לעמידה, תוך קשת עדינה לאחור בשיא התנועה.',
     // Drawn side-on — a front view collapses a forward fold onto one vertical line.
+    // Full cycle: stand → fold to the feet → stand → arch gently back → stand.
     illo: (animated) => svgFigure(groundLine() + bone('38,78 40,108 42,130', T.fg)
-      + movingBone('38,78 40,50 40,34', '38,78 56,80 70,85', T.fg, animated)
-      + movingHead(40,28, 82,87, T.fg, animated)
-      + movingBone('40,34 38,55 36,68', '70,85 80,108 76,129', T.accent, animated)),
+      + movingBone('38,78 40,50 40,34', ['38,78 56,80 70,85', '38,78 34,50 30,32'], T.fg, animated)
+      + movingHead(40,28, [82,26], [87,26], T.fg, animated)
+      + movingBone('40,34 38,55 36,68', ['70,85 80,108 76,129', '30,32 26,50 24,65'], T.accent, animated)),
   },
   'קמיצת אגרופים ומבט זועם': {
     desc: 'מעמידת פרשה, קמצו את שתי הידיים לאגרופים ליד המותניים. הכו אגרוף אחד קדימה עם נשיפה נחרצת ומבט ממוקד, ואז משכו אותו בחזרה וחזרו עם הצד השני.',
+    // Both fists take a turn punching, not just one.
     illo: (animated) => svgFigure(groundLine() + LEGS_HORSE() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
-      + movingBone('40,36 36,48 34,60', '40,36 24,34 8,32', T.accent, animated)
-      + bone('60,36 64,48 62,60', T.fg)),
+      + movingBone('40,36 36,48 34,60', ['40,36 24,34 8,32', '40,36 36,48 34,60'], T.accent, animated)
+      + movingBone('60,36 64,48 62,60', ['60,36 64,48 62,60', '60,36 76,34 92,32'], T.accent, animated)),
   },
   'קפיצות קלות על קצות האצבעות והעקבים': {
     desc: 'התרוממו על קצות כפות הרגליים, ואז הורידו את העקבים לרצפה בניתור קל וקפיצי. תנו לתחושה לעבור בעדינות דרך כל הגוף. סיימו את החזרה האחרונה בעמידה שקטה למשך כמה נשימות.',
     illo: (animated) => svgFigure(groundLine()
-      + movingBone('50,75 43,105 41,120 40,130', '50,75 43,105 40,127 46,133', T.fg, animated, '1.8s')
-      + movingBone('50,75 57,105 59,120 60,130', '50,75 57,105 60,127 54,133', T.fg, animated, '1.8s')
-      + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
+      + movingBone('50,75 43,105 41,120 40,130', '50,75 43,105 39,124 47,136', T.fg, animated, '1.8s')
+      + movingBone('50,75 57,105 59,120 60,130', '50,75 57,105 61,124 53,136', T.fg, animated, '1.8s')
+      + bone('50,34 50,75', T.fg) + movingHead(50,20, 50, 18, T.fg, animated, '1.8s')
       + bone('40,36 36,55 38,68', T.fg) + bone('60,36 64,55 62,68', T.fg)
       + `<path d="M30,120 Q34,113 38,120" fill="none" stroke="${T.accent}" stroke-width="2.5" stroke-linecap="round">${animated ? '<animate attributeName="opacity" values="1;1;0;0;1" dur="1.8s" repeatCount="indefinite"/>' : ''}</path>`
       + `<path d="M62,120 Q66,113 70,120" fill="none" stroke="${T.accent}" stroke-width="2.5" stroke-linecap="round">${animated ? '<animate attributeName="opacity" values="1;1;0;0;1" dur="1.8s" repeatCount="indefinite"/>' : ''}</path>`),
