@@ -234,6 +234,10 @@ function getExInfo(name) {
   return EX_INFO[name] || { desc: 'Move slowly and stay with the breath. If nothing else, don’t rush it.' };
 }
 
+function youtubeSearchUrl(name) {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(name + ' qigong')}`;
+}
+
 const HOME_PHRASES = [
   "Twenty minutes. The stillness carries into the rest of the day.",
   "The breath is already right there. You're just going to notice it.",
@@ -727,6 +731,14 @@ function renderPreview(root) {
   descText.textContent = info.desc;
   descBox.append(descTitle, descText);
 
+  // No verified video IDs exist for this content, so this opens a real YouTube
+  // search rather than risk embedding a broken or wrong tutorial mid-practice.
+  const watchLink = el('a', `display:flex;align-items:center;justify-content:space-between;text-decoration:none;background:transparent;border:1px solid ${T.hairline};color:${T.fg};border-radius:6px;padding:14px 16px;font-family:${T.mono_ff};font-size:11px;letter-spacing:1.5px;text-transform:uppercase;`);
+  watchLink.href = youtubeSearchUrl(cur.exName);
+  watchLink.target = '_blank';
+  watchLink.rel = 'noopener';
+  watchLink.innerHTML = `<span>Watch on YouTube</span><span style="opacity:0.6">${iconArrow(T.fg)}</span>`;
+
   const intentBox = el('div', `display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:${T.pill};border-radius:6px;`);
   const intentIcon = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.accent};flex-shrink:0;margin-top:2px;letter-spacing:1px;`);
   intentIcon.textContent = cur.kind === 'meditation' ? 'MED' : 'TIP';
@@ -734,7 +746,7 @@ function renderPreview(root) {
   intentText.textContent = cur.intent;
   intentBox.append(intentIcon, intentText);
 
-  body.append(upTag, exTitle, chips, descBox, intentBox, el('div', `height:20px;`));
+  body.append(upTag, exTitle, chips, descBox, watchLink, intentBox, el('div', `height:20px;`));
 
   const ctaWrap = el('div', `padding:14px 22px;padding-bottom:calc(env(safe-area-inset-bottom,14px)+14px);flex-shrink:0;`);
   const ctaBtn = el('button', `width:100%;appearance:none;border:none;background:${T.accent};color:${T.accentT};border-radius:6px;padding:20px 22px;font-family:${T.display};font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:12px;`);
