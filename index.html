@@ -78,8 +78,11 @@ function iconClose(c) { return `<svg width="14" height="14" viewBox="0 0 14 14" 
 function iconArrow(c) { return `<svg width="16" height="16" viewBox="0 0 16 16" stroke="${c}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,4 10,8 6,12"/></svg>`; }
 function iconSpeaker(c) { return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19" fill="${c}" stroke="none"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>`; }
 
-function youtubeSearchUrl(name) {
-  return `https://www.youtube.com/results?search_query=${encodeURIComponent(name + ' qigong')}`;
+// Search query stays in English (nameEn) — most Baduanjin tutorials are in
+// English/Chinese, so an English query surfaces better results than a
+// Hebrew one for a Chinese-origin movement name.
+function youtubeSearchUrl(nameEn) {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(nameEn + ' baduanjin qigong')}`;
 }
 
 function speakText(text) {
@@ -87,6 +90,7 @@ function speakText(text) {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'he-IL';
     utter.rate = 0.92;
     window.speechSynthesis.speak(utter);
   } catch {}
@@ -99,29 +103,29 @@ function speakText(text) {
 // not different content per day.
 // ═══════════════════════════════════════════════════════
 const BADUANJIN_PHASES = [
-  { id:'b1', name:'First', intent:'Regulates the Triple Burner. Lengthens the whole spine.', exercises:[
-    { name:'Two Hands Hold Up the Heavens', variants:['6 reps','8 reps','10 reps','12 reps'] },
+  { id:'b1', name:'ראשון', intent:'מווסת את זרימת האנרגיה בגוף. מאריך את כל עמוד השדרה.', exercises:[
+    { name:'שתי ידיים תומכות בשמיים', nameEn:'Two Hands Hold Up the Heavens', variants:['6 חזרות','8 חזרות','10 חזרות','12 חזרות'] },
   ]},
-  { id:'b2', name:'Second', intent:'Opens the chest. Strengthens the arms, shoulders, and lungs.', exercises:[
-    { name:'Drawing the Bow to Shoot the Hawk', variants:['4 each side','5 each side','6 each side','8 each side'] },
+  { id:'b2', name:'שני', intent:'פותח את בית החזה. מחזק את הזרועות, הכתפיים והריאות.', exercises:[
+    { name:'מתיחת הקשת לירות בנץ', nameEn:'Drawing the Bow to Shoot the Hawk', variants:['4 לכל צד','5 לכל צד','6 לכל צד','8 לכל צד'] },
   ]},
-  { id:'b3', name:'Third', intent:'Regulates the spleen and stomach.', exercises:[
-    { name:'Separate Heaven and Earth', variants:['4 each side','6 each side','8 each side','10 each side'] },
+  { id:'b3', name:'שלישי', intent:'מווסת את הטחול והקיבה.', exercises:[
+    { name:'הפרדת שמיים וארץ', nameEn:'Separate Heaven and Earth', variants:['4 לכל צד','6 לכל צד','8 לכל צד','10 לכל צד'] },
   ]},
-  { id:'b4', name:'Fourth', intent:'Old language for relieving general strain and fatigue.', exercises:[
-    { name:'The Wise Owl Gazes Backward', variants:['3 each side','4 each side','5 each side','6 each side'] },
+  { id:'b4', name:'רביעי', intent:'ניסוח עתיק לשחרור מתח ועייפות כללית.', exercises:[
+    { name:'הינשוף החכם מביט לאחור', nameEn:'The Wise Owl Gazes Backward', variants:['3 לכל צד','4 לכל צד','5 לכל צד','6 לכל צד'] },
   ]},
-  { id:'b5', name:'Fifth', intent:'Clears heat and tension held in the chest and head.', exercises:[
-    { name:'Sway the Head and Shake the Tail', variants:['4 each side','5 each side','6 each side','8 each side'] },
+  { id:'b5', name:'חמישי', intent:'משחרר חום ומתח שנאגרים בחזה ובראש.', exercises:[
+    { name:'נדנוד הראש וניעור הזנב', nameEn:'Sway the Head and Shake the Tail', variants:['4 לכל צד','5 לכל צד','6 לכל צד','8 לכל צד'] },
   ]},
-  { id:'b6', name:'Sixth', intent:'Strengthens the kidneys and low back.', exercises:[
-    { name:'Two Hands Hold the Feet', variants:['4 reps','6 reps','8 reps','10 reps'] },
+  { id:'b6', name:'שישי', intent:'מחזק את הכליות ואת הגב התחתון.', exercises:[
+    { name:'שתי ידיים אוחזות בכפות הרגליים', nameEn:'Two Hands Hold the Feet', variants:['4 חזרות','6 חזרות','8 חזרות','10 חזרות'] },
   ]},
-  { id:'b7', name:'Seventh', intent:'Builds strength and qi through focused intent.', exercises:[
-    { name:'Clench the Fists and Glare Fiercely', variants:['4 each side','6 each side','8 each side','10 each side'] },
+  { id:'b7', name:'שביעי', intent:'בונה כוח ואנרגיה דרך כוונה ממוקדת.', exercises:[
+    { name:'קמיצת אגרופים ומבט זועם', nameEn:'Clench the Fists and Glare Fiercely', variants:['4 לכל צד','6 לכל צד','8 לכל צד','10 לכל צד'] },
   ]},
-  { id:'b8', name:'Eighth', intent:'Shakes the whole body loose. Traditionally said to prevent a hundred illnesses.', exercises:[
-    { name:'Bouncing on Toes and Heels', variants:['6 reps','8 reps','10 reps','12 reps'] },
+  { id:'b8', name:'שמיני', intent:'משחרר את כל הגוף. לפי המסורת, מונע מחלות.', exercises:[
+    { name:'קפיצות קלות על קצות האצבעות והעקבים', nameEn:'Bouncing on Toes and Heels', variants:['6 חזרות','8 חזרות','10 חזרות','12 חזרות'] },
   ]},
 ];
 
@@ -131,9 +135,9 @@ const PROGRAM = {
   // fractions of SESSION_MIN — split evenly across the 8 pieces.
   phaseShare: { b1:1/8, b2:1/8, b3:1/8, b4:1/8, b5:1/8, b6:1/8, b7:1/8, b8:1/8 },
   days: [
-    { id: 'd1', title: 'Eight Brocades · Baduanjin', kicker: 'The traditional eight-movement set', tag: 'BADUANJIN', phases: BADUANJIN_PHASES },
-    { id: 'd2', title: 'Eight Brocades · Baduanjin', kicker: 'The traditional eight-movement set', tag: 'BADUANJIN', phases: BADUANJIN_PHASES },
-    { id: 'd3', title: 'Eight Brocades · Baduanjin', kicker: 'The traditional eight-movement set', tag: 'BADUANJIN', phases: BADUANJIN_PHASES },
+    { id: 'd1', title: "שמונת פרקי הברוקד · באדואנג'ין", kicker: 'התרגיל המסורתי בן שמונת החלקים', tag: "באדואנג'ין", phases: BADUANJIN_PHASES },
+    { id: 'd2', title: "שמונת פרקי הברוקד · באדואנג'ין", kicker: 'התרגיל המסורתי בן שמונת החלקים', tag: "באדואנג'ין", phases: BADUANJIN_PHASES },
+    { id: 'd3', title: "שמונת פרקי הברוקד · באדואנג'ין", kicker: 'התרגיל המסורתי בן שמונת החלקים', tag: "באדואנג'ין", phases: BADUANJIN_PHASES },
   ],
 };
 
@@ -157,51 +161,51 @@ const LEGS_NARROW = () => bone('50,75 43,105 40,130', T.fg) + bone('50,75 57,105
 const LEGS_HORSE  = () => bone('50,75 30,100 22,130', T.fg) + bone('50,75 70,100 78,130', T.fg);
 
 function getExInfo(name) {
-  return EX_INFO[name] || { desc: 'Move slowly and stay with the breath. If nothing else, don’t rush it.' };
+  return EX_INFO[name] || { desc: 'זוזו לאט והישארו עם הנשימה. אם לא משהו אחר, לפחות אל תמהרו.' };
 }
 
 const EX_INFO = {
-  'Two Hands Hold Up the Heavens': {
-    desc: 'Stand with feet shoulder-width, interlace your fingers and turn the palms up in front of the belly. Inhale as you press the palms overhead, straightening through the whole spine. Exhale as you separate the hands and lower them back down. Start from a relaxed, upright stance before the first rep.',
+  'שתי ידיים תומכות בשמיים': {
+    desc: 'עמדו עם הרגליים ברוחב הכתפיים, שזרו את האצבעות והפנו את כפות הידיים כלפי מעלה מול הבטן. שאפו אוויר תוך כדי לחיצת כפות הידיים מעלה, ישרו את כל עמוד השדרה. נשפו תוך כדי הפרדת הידיים והורדתן בחזרה. התחילו מעמידה זקופה ורגועה לפני החזרה הראשונה.',
     illo: () => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg) + headC(50,18,T.fg)
       + bone('40,36 28,22 32,6', T.accent) + bone('60,36 72,22 68,6', T.accent)),
   },
-  'Drawing the Bow to Shoot the Hawk': {
-    desc: 'From a horse stance, cross the arms in front of the chest. Extend one arm out to the side as if drawing a bow, while the other hand pulls back like gripping the bowstring. Exhale fully on each draw, then alternate sides.',
+  'מתיחת הקשת לירות בנץ': {
+    desc: 'מעמידת פרשה, הצליבו את הזרועות מול החזה. מתחו זרוע אחת הצידה כאילו מותחים קשת, בעוד היד השנייה מושכת אחורה כמו אוחזת במיתר. נשפו במלואו בכל מתיחה, ואז החליפו צד.',
     illo: () => svgFigure(groundLine() + LEGS_HORSE() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
       + bone('60,36 78,32 96,30', T.accent) + bone('40,36 26,44 20,54', T.accent)),
   },
-  'Separate Heaven and Earth': {
-    desc: 'Standing tall, raise one arm overhead with the palm pressing up, while the other hand presses down toward the floor at your side. Feel the spine lengthen between the two presses, then switch sides.',
+  'הפרדת שמיים וארץ': {
+    desc: 'עמידה זקופה, הרימו זרוע אחת מעלה עם כף היד לוחצת כלפי מעלה, בעוד היד השנייה לוחצת כלפי מטה לצד גופכם. הרגישו את עמוד השדרה מתארך בין שתי הלחיצות, ואז החליפו צד.',
     illo: () => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
       + bone('60,36 68,20 62,4', T.accent) + bone('40,36 34,54 28,70', T.accent)),
   },
-  'The Wise Owl Gazes Backward': {
-    desc: 'Stand relaxed with arms at your sides. Slowly turn your head to look behind you over one shoulder, keeping the hips facing forward. Return to center and repeat to the other side.',
+  'הינשוף החכם מביט לאחור': {
+    desc: 'עמדו רגועים עם הידיים לצדי הגוף. סובבו לאט את הראש להביט מאחוריכם מעל כתף אחת, תוך שמירה על האגן פונה קדימה. חזרו למרכז וחזרו על הצד השני.',
     illo: () => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg)
       + bone('40,36 34,55 32,70', T.fg) + bone('60,36 66,55 68,70', T.fg)
       + headC(58,20,T.accent) + bone('70,16 80,20 74,26', T.accent)),
   },
-  'Sway the Head and Shake the Tail': {
-    desc: 'From a low horse stance, lean the torso forward slightly and circle the head and upper body in a wide arc to one side, as if shaking out heat through the tailbone. Alternate sides slowly.',
+  'נדנוד הראש וניעור הזנב': {
+    desc: 'מעמידת פרשה נמוכה, הטו את הגו מעט קדימה וסובבו את הראש והגו העליון בקשת רחבה לצד אחד, כאילו מנערים חום דרך עצם הזנב. החליפו צדדים לאט.',
     illo: () => svgFigure(groundLine() + LEGS_HORSE()
       + bone('50,75 32,42 22,18', T.accent) + headC(22,18,T.accent)
       + bone('32,42 16,58', T.fg) + bone('32,42 50,62', T.fg)),
   },
-  'Two Hands Hold the Feet': {
-    desc: 'Bend forward from the hips and reach both hands toward your feet, knees soft. Then reverse the motion, sliding the hands up the back of the legs and spine to standing, arching gently backward at the top.',
+  'שתי ידיים אוחזות בכפות הרגליים': {
+    desc: 'התכופפו קדימה מהמותניים ושלחו את שתי הידיים לעבר כפות הרגליים, הברכיים רכות. לאחר מכן הפכו את התנועה, החליקו את הידיים במעלה הרגליים והגב עד לעמידה, תוך קשת עדינה לאחור בשיא התנועה.',
     // Drawn side-on — a front view collapses a forward fold onto one vertical line.
     illo: () => svgFigure(groundLine() + bone('38,78 40,108 42,130', T.fg)
       + bone('38,78 56,80 70,85', T.fg) + headC(82,87,T.fg)
       + bone('70,85 80,108 76,129', T.accent)),
   },
-  'Clench the Fists and Glare Fiercely': {
-    desc: 'From a horse stance, clench both fists at your hips. Punch one fist forward with a firm exhale and a focused gaze, then draw it back and repeat with the other side.',
+  'קמיצת אגרופים ומבט זועם': {
+    desc: 'מעמידת פרשה, קמצו את שתי הידיים לאגרופים ליד המותניים. הכו אגרוף אחד קדימה עם נשיפה נחרצת ומבט ממוקד, ואז משכו אותו בחזרה וחזרו עם הצד השני.',
     illo: () => svgFigure(groundLine() + LEGS_HORSE() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
       + bone('40,36 24,34 8,32', T.accent) + bone('60,36 64,48 62,60', T.fg)),
   },
-  'Bouncing on Toes and Heels': {
-    desc: 'Rise up onto the balls of your feet, then drop your heels to the ground with a light, springy bounce. Let it travel gently up through the whole body. Finish the last rep by standing quietly for a few breaths.',
+  'קפיצות קלות על קצות האצבעות והעקבים': {
+    desc: 'התרוממו על קצות כפות הרגליים, ואז הורידו את העקבים לרצפה בניתור קל וקפיצי. תנו לתחושה לעבור בעדינות דרך כל הגוף. סיימו את החזרה האחרונה בעמידה שקטה למשך כמה נשימות.',
     illo: () => svgFigure(groundLine() + bone('50,75 43,105 40,127 46,133', T.fg) + bone('50,75 57,105 60,127 54,133', T.fg)
       + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
       + bone('40,36 36,55 38,68', T.fg) + bone('60,36 64,55 62,68', T.fg)
@@ -211,16 +215,16 @@ const EX_INFO = {
 };
 
 const HOME_PHRASES = [
-  "Twenty minutes. The stillness carries into the rest of the day.",
-  "The breath is already right there. You're just going to notice it.",
-  "Nothing to force here. Just show up and move slowly.",
-  "Three mornings a week. That's the whole ask.",
-  "The body already knows how to settle. This just reminds it.",
-  "Slow is not the same as small. Stay with it.",
-  "You don't have to feel like practicing. You just have to start.",
-  "This is the quiet part of the day, on purpose.",
-  "Four weeks. You're already inside it.",
-  "Whatever the day brings later, this part is yours first.",
+  "עשרים דקות. השקט נשאר איתכם גם אחרי.",
+  "הנשימה כבר שם. אתם רק צריכים לשים לב אליה.",
+  "אין כאן מה לאלץ. רק תגיעו ותזוזו לאט.",
+  "שלושה בקרים בשבוע. זו כל הבקשה.",
+  "הגוף כבר יודע להירגע. זה רק מזכיר לו.",
+  "לאט זה לא מעט. תישארו עם זה.",
+  "לא חייבים להרגיש מוכנים לתרגל. רק צריך להתחיל.",
+  "זה החלק השקט של היום, בכוונה.",
+  "ארבעה שבועות. אתם כבר בפנים.",
+  "מה שהיום יביא אחר כך, החלק הזה שלכם קודם.",
 ];
 
 function phaseSeconds(totalMin) {
@@ -238,7 +242,7 @@ function buildTimeline(dayIdx, week, totalMin) {
     const each = Math.max(20, Math.round(totals[ph.id] / ph.exercises.length));
     ph.exercises.forEach((ex, ei) => {
       out.push({ phaseIdx:pi, phaseId:ph.id, phaseName:ph.name, intent:ph.intent,
-        exIdx:ei, exName:ex.name, variant:ex.variants[week-1], seconds:each, kind:'exercise' });
+        exIdx:ei, exName:ex.name, exNameEn:ex.nameEn, variant:ex.variants[week-1], seconds:each, kind:'exercise' });
     });
   });
   return out;
@@ -339,48 +343,46 @@ function getStreak() {
   return streak;
 }
 
-function pickMessage(streak, week, dayTag, total) {
-  if (total === 1)   return "First one done. The rest builds from here.";
-  if (total === 12)  return "Twelve sessions. The whole program, done.";
-  if (streak === 21) return "Twenty-one mornings straight. This is just how mornings work now.";
-  if (streak === 14) return "Two weeks without a gap. The practice found its footing.";
-  if (streak === 10) return "Ten straight mornings. That's not effort anymore — that's rhythm.";
-  if (streak === 7)  return "A full week unbroken.";
-  if (streak === 5)  return "Five in a row. The body's starting to expect this.";
-  if (streak === 3)  return "Three straight mornings.";
-  if (streak === 2)  return "Two in a row. The second one is the one that counts.";
+function pickMessage(streak, week, total) {
+  if (total === 1)   return "האימון הראשון הושלם. משם והלאה זה נבנה.";
+  if (total === 12)  return "שתים עשרה אימונים. כל התוכנית, הושלמה.";
+  if (streak === 21) return "עשרים ואחד בקרים ברצף. ככה נראים הבקרים עכשיו.";
+  if (streak === 14) return "שבועיים בלי פער. התרגול מצא את מקומו.";
+  if (streak === 10) return "עשרה בקרים ברצף. זה כבר לא מאמץ - זה קצב.";
+  if (streak === 7)  return "שבוע שלם ללא הפסקה.";
+  if (streak === 5)  return "חמישה ברצף. הגוף מתחיל לצפות לזה.";
+  if (streak === 3)  return "שלושה בקרים ברצף.";
+  if (streak === 2)  return "שניים ברצף. השני הוא זה שבאמת קובע.";
 
-  const combo = `${week}-${dayTag}`;
   const comboMessages = {
-    '1-BADUANJIN': "Week one of the eight pieces. The order is the whole point — trust it before you rush it.",
-    '2-BADUANJIN': "Second week through the set. The sequence should start to feel like one motion now, not eight separate ones.",
-    '3-BADUANJIN': "Third week. The holds go deeper because you're not thinking about what comes next anymore.",
-    '4-BADUANJIN': "Final week of the program. Eight movements, twelve sessions, the same set the whole way through.",
+    1: "שבוע ראשון של שמונת התרגילים. הסדר הוא כל העניין - תנו לו אמון לפני שאתם ממהרים.",
+    2: "שבוע שני עם הסט. הרצף אמור להתחיל להרגיש כמו תנועה אחת, לא שמונה נפרדות.",
+    3: "שבוע שלישי. ההחזקות מעמיקות כי אתם כבר לא חושבים מה בא אחר כך.",
+    4: "שבוע אחרון של התוכנית. שמונה תרגילים, שתים עשרה אימונים, אותו סט לכל אורך הדרך.",
   };
-  if (comboMessages[combo]) return comboMessages[combo];
+  if (comboMessages[week]) return comboMessages[week];
 
   const pool = [
-    "Qigong doesn't ask for effort. It asks for attention.",
-    "Eight pieces, same order, every time. The repetition is the point, not a limitation.",
-    "You don't build calm in the practice. You build it in how it stays with you after.",
-    "Twenty minutes of this is worth more than an hour you only do twice a month.",
-    "The body settles into what you consistently ask of it. You're asking.",
-    "Consistency without intensity beats intensity without consistency. Every time.",
-    "Done. Another morning you'll never have to start cold again.",
-    "Quiet work. No performance. This is what it looks like.",
-    "The streak is a byproduct. The breath is the thing.",
-    `${total} sessions. You keep arriving.`,
-    "Another one in the books. It adds up whether you feel it today or not.",
-    "Not every session feels settled. This one counts the same.",
-    "The gap between wanting to and doing it is exactly this — twenty minutes, this morning.",
-    "One more session behind you. That's the whole practice.",
+    "צ'י קונג לא מבקש מאמץ. הוא מבקש תשומת לב.",
+    "שמונה תרגילים, אותו סדר, בכל פעם. החזרתיות היא הנקודה, לא מגבלה.",
+    "לא בונים שקט בתוך התרגול. בונים אותו באיך שהוא נשאר איתכם אחר כך.",
+    "עשרים דקות מזה שוות יותר משעה שעושים רק פעמיים בחודש.",
+    "הגוף מתיישב לתוך מה שמבקשים ממנו בעקביות. אתם מבקשים.",
+    "עקביות בלי עוצמה מנצחת עוצמה בלי עקביות. בכל פעם.",
+    "בוצע. עוד בוקר שלא תצטרכו להתחיל בו מאפס שוב.",
+    "עבודה שקטה. בלי הצגה. ככה זה נראה.",
+    "הרצף הוא תוצר לוואי. הנשימה היא העניין.",
+    `${total} אימונים. אתם ממשיכים להגיע.`,
+    "עוד אחד נרשם. זה מצטבר בין אם מרגישים את זה היום ובין אם לא.",
+    "לא כל אימון מרגיש מיושב. זה נחשב באותה מידה.",
+    "הפער בין לרצות לבין לעשות הוא בדיוק זה - עשרים דקות, הבוקר.",
+    "עוד אימון מאחוריכם. זה כל התרגול.",
   ];
   return pool[total % pool.length];
 }
 
 async function shareSession(streak, total, duration) {
-  const day = PROGRAM.days[state.day];
-  const text = `${Math.round(duration / 60)} min ${day.tag.toLowerCase()} practice — week ${state.week}, day ${state.day + 1}. ${streak >= 2 ? streak + ' day streak. ' : ''}${total} sessions total.`;
+  const text = `תרגול באדואנג'ין, ${Math.round(duration / 60)} דקות - שבוע ${state.week}, יום ${state.day + 1}. ${streak >= 2 ? 'רצף של ' + streak + ' ימים. ' : ''}סה"כ ${total} אימונים.`;
   if (navigator.share) {
     try { await navigator.share({ title: 'Q·Flow', text }); return 'shared'; } catch { return null; }
   }
@@ -433,7 +435,7 @@ function renderHome(root) {
     titleDiv.appendChild(d2);
   });
   const kickerDiv = el('div', `margin-top:8px;font-family:${T.mono_ff};font-size:11px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;`);
-  kickerDiv.textContent = `${day.kicker} · ${SESSION_MIN} min`;
+  kickerDiv.textContent = `${day.kicker} · ${SESSION_MIN} דקות`;
   titleWrap.append(titleDiv, kickerDiv);
 
   const phraseCard = el('div', `padding:12px 0;`);
@@ -443,7 +445,7 @@ function renderHome(root) {
 
   const beginBtn = el('button', `appearance:none;border:none;background:${T.accent};color:${T.accentT};border-radius:6px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;font-family:${T.display};font-weight:700;font-size:18px;letter-spacing:0.5px;text-transform:uppercase;width:100%;`);
   const beginL = el('span', `display:flex;align-items:center;gap:12px;`);
-  beginL.innerHTML = `${iconPlay(T.accentT)} Begin`;
+  beginL.innerHTML = `${iconPlay(T.accentT)} התחל`;
   const beginR = el('span', `font-family:${T.mono_ff};font-size:13px;font-weight:500;`);
   beginR.textContent = `${SESSION_MIN}:00`;
   beginBtn.append(beginL, beginR);
@@ -452,7 +454,7 @@ function renderHome(root) {
   const phaseBreak = renderPhaseChips(day);
 
   const weekSection = el('div', ``);
-  weekSection.appendChild(sectionHeader('This week'));
+  weekSection.appendChild(sectionHeader('השבוע הזה'));
   const weekRow = el('div', `display:flex;gap:6px;margin-top:10px;`);
   [0,1,2].forEach(d2 => {
     const done = doneThisWeek[d2];
@@ -461,7 +463,7 @@ function renderHome(root) {
     const lbl = el('div', `font-family:${T.mono_ff};font-size:10px;letter-spacing:1.5px;opacity:0.7;text-transform:uppercase;`);
     lbl.textContent = `D${d2+1}`;
     const status = el('div', `font-family:${T.display};font-weight:700;font-size:18px;margin-top:6px;line-height:1;text-transform:uppercase;letter-spacing:0.5px;`);
-    status.textContent = done ? 'Done' : isToday ? 'Today' : 'Open';
+    status.textContent = done ? 'הושלם' : isToday ? 'היום' : 'פתוח';
     const tag = el('div', `font-family:${T.mono_ff};font-size:10px;margin-top:6px;opacity:0.7;text-transform:uppercase;letter-spacing:1px;`);
     tag.textContent = PROGRAM.days[d2].tag;
     btn.append(lbl, status, tag);
@@ -474,7 +476,7 @@ function renderHome(root) {
 
   const bottomLinks = el('div', `display:flex;flex-direction:column;gap:8px;`);
   const progBtn = el('button', `appearance:none;background:transparent;border:1px solid ${T.hairline};color:${T.fg};border-radius:6px;padding:14px 16px;font-family:${T.mono_ff};font-size:11px;letter-spacing:1.5px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;width:100%;`);
-  progBtn.innerHTML = `<span>4-week program</span><span style="opacity:0.6">${iconArrow(T.fg)}</span>`;
+  progBtn.innerHTML = `<span>תוכנית 4 השבועות</span><span style="opacity:0.6">${iconArrow(T.fg)}</span>`;
   progBtn.onclick = () => { state.view = 'program'; render(); };
   bottomLinks.append(progBtn);
 
@@ -486,7 +488,7 @@ function renderHome(root) {
 function renderPhaseChips(day) {
   const totals = phaseSeconds(SESSION_MIN);
   const wrap = el('div', ``);
-  wrap.appendChild(sectionHeader('Session breakdown'));
+  wrap.appendChild(sectionHeader('מבנה האימון'));
   const list = el('div', `margin-top:10px;display:flex;flex-direction:column;gap:4px;`);
   day.phases.forEach((ph, i) => {
     const mins = Math.round(totals[ph.id] / 60);
@@ -510,7 +512,7 @@ function renderPhaseChips(day) {
 
 function renderProgressGrid() {
   const wrap = el('div', ``);
-  wrap.appendChild(sectionHeader('4-week progress'));
+  wrap.appendChild(sectionHeader('התקדמות 4 השבועות'));
   const grid = el('div', `margin-top:10px;display:grid;grid-template-columns:auto repeat(3,1fr);gap:6px;align-items:center;`);
   grid.appendChild(el('span', ``));
   [0,1,2].forEach(d => {
@@ -627,7 +629,7 @@ function renderPreview(root) {
   const body = el('div', `flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:18px;`);
 
   const upTag = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
-  upTag.textContent = state.idx === 0 ? 'First up' : 'Up next';
+  upTag.textContent = state.idx === 0 ? 'ראשון בתור' : 'הבא בתור';
 
   const exTitle = el('div', `font-family:${T.display};font-weight:700;font-size:38px;line-height:0.95;text-transform:uppercase;letter-spacing:-1px;`);
   exTitle.textContent = cur.exName;
@@ -643,7 +645,7 @@ function renderPreview(root) {
     chip.append(lbl2, div, val2);
     return chip;
   };
-  chips.append(makeChip(`Week ${state.week}`, cur.variant), makeChip('Duration', fmt(cur.seconds)));
+  chips.append(makeChip(`שבוע ${state.week}`, cur.variant), makeChip('משך', fmt(cur.seconds)));
 
   // Built-in stick-figure diagram — no video, so no ads/intros/loading before
   // a movement that repeats every single session. A small YouTube fallback
@@ -653,17 +655,17 @@ function renderPreview(root) {
     const illoWrap = el('div', ``);
     illoWrap.innerHTML = info.illo();
     const watchLink = el('a', `display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:${T.mono};font-family:${T.mono_ff};font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 0 4px;`);
-    watchLink.href = youtubeSearchUrl(cur.exName);
+    watchLink.href = youtubeSearchUrl(cur.exNameEn);
     watchLink.target = '_blank';
     watchLink.rel = 'noopener';
-    watchLink.innerHTML = `<span>Not clear? Watch on YouTube</span>`;
+    watchLink.innerHTML = `<span>לא ברור? צפו ביוטיוב</span>`;
     illoBox.append(illoWrap, watchLink);
   }
 
   const descBox = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:6px;padding:16px;`);
   const descHdr = el('div', `display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;`);
   const descTitle = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
-  descTitle.textContent = 'How to do it';
+  descTitle.textContent = 'איך לבצע';
   const speakBtn = el('button', `appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.fg};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;`);
   speakBtn.innerHTML = iconSpeaker(T.fg);
   speakBtn.onclick = () => speakText(`${cur.exName}. ${info.desc}`);
@@ -674,7 +676,7 @@ function renderPreview(root) {
 
   const intentBox = el('div', `display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:${T.pill};border-radius:6px;`);
   const intentIcon = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.accent};flex-shrink:0;margin-top:2px;letter-spacing:1px;`);
-  intentIcon.textContent = 'TIP';
+  intentIcon.textContent = 'טיפ';
   const intentText = el('div', `font-size:13px;color:${T.sub};line-height:1.5;`);
   intentText.textContent = cur.intent;
   intentBox.append(intentIcon, intentText);
@@ -686,7 +688,7 @@ function renderPreview(root) {
 
   const ctaWrap = el('div', `padding:14px 22px;padding-bottom:calc(env(safe-area-inset-bottom,14px)+14px);flex-shrink:0;`);
   const ctaBtn = el('button', `width:100%;appearance:none;border:none;background:${T.accent};color:${T.accentT};border-radius:6px;padding:20px 22px;font-family:${T.display};font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:12px;`);
-  ctaBtn.innerHTML = `${iconPlay(T.accentT)} <span>Ready — Let's go</span>`;
+  ctaBtn.innerHTML = `${iconPlay(T.accentT)} <span>מוכנים - בואו נתחיל</span>`;
   ctaBtn.onclick = () => {
     state.view = 'session';
     render();
@@ -753,23 +755,23 @@ function renderSession(root) {
   const timerCard = el('div', `border:1px solid ${T.hairline};border-radius:6px;padding:20px 22px;display:flex;justify-content:space-between;align-items:flex-end;`);
   const timerL = el('div', ``);
   const timerLbl = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;`);
-  timerLbl.textContent = 'Remaining';
+  timerLbl.textContent = 'נותר';
   const timerNum = el('div', `font-family:${T.mono_ff};font-size:64px;font-weight:500;color:${T.fg};letter-spacing:-3px;line-height:0.9;margin-top:4px;font-variant-numeric:tabular-nums;`);
   timerNum.id = 'timer-num';
   timerNum.textContent = fmt(state.left);
   timerL.append(timerLbl, timerNum);
   const timerR = el('div', `text-align:right;max-width:140px;`);
   const nextLbl = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;`);
-  nextLbl.textContent = 'Next';
+  nextLbl.textContent = 'הבא';
   const nextName = el('div', `font-family:${T.display};font-weight:700;font-size:14px;margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;color:${T.fg};`);
-  nextName.textContent = state.timeline[state.idx + 1]?.exName || 'Complete';
+  nextName.textContent = state.timeline[state.idx + 1]?.exName || 'הושלם';
   timerR.append(nextLbl, nextName);
   timerCard.append(timerL, timerR);
 
   const progWrap = el('div', ``);
   const progHdr = el('div', `display:flex;justify-content:space-between;font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;`);
-  const sessLeft = el('span', ``); sessLeft.textContent = 'Session';
-  const sessRight = el('span', ``); sessRight.textContent = fmt(totalSec - doneSec) + ' left';
+  const sessLeft = el('span', ``); sessLeft.textContent = 'אימון';
+  const sessRight = el('span', ``); sessRight.textContent = `נותרו ${fmt(totalSec - doneSec)}`;
   progHdr.append(sessLeft, sessRight);
   const progBg = el('div', `height:4px;background:${T.pill};margin-top:6px;`);
   const progFill = el('div', `height:100%;width:${(doneSec/totalSec)*100}%;background:${T.accent};`);
@@ -786,10 +788,10 @@ function renderControls() {
   const ctrls = el('div', `padding:14px 22px;display:flex;gap:10px;flex-shrink:0;padding-bottom:calc(env(safe-area-inset-bottom,14px)+14px);`);
   const pauseBtn = el('button', `flex:2;appearance:none;border:none;background:${T.fg};color:${T.bg};border-radius:6px;padding:18px;font-family:${T.display};font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:10px;`);
   pauseBtn.id = 'pause-btn';
-  pauseBtn.innerHTML = `${state.paused ? iconPlay(T.bg) : iconPause(T.bg)} ${state.paused ? 'Resume' : 'Pause'}`;
+  pauseBtn.innerHTML = `${state.paused ? iconPlay(T.bg) : iconPause(T.bg)} ${state.paused ? 'המשך' : 'השהה'}`;
   pauseBtn.onclick = togglePause;
   const skipBtn = el('button', `flex:1;appearance:none;background:transparent;border:1px solid ${T.hairline};color:${T.fg};border-radius:6px;padding:18px;font-family:${T.display};font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:8px;`);
-  skipBtn.innerHTML = `${iconNext(T.fg)} Skip`;
+  skipBtn.innerHTML = `${iconNext(T.fg)} דלג`;
   skipBtn.onclick = skipExercise;
   ctrls.append(pauseBtn, skipBtn);
   return ctrls;
@@ -798,7 +800,7 @@ function renderControls() {
 function togglePause() {
   state.paused = !state.paused;
   const btn = document.getElementById('pause-btn');
-  if (btn) btn.innerHTML = `${state.paused ? iconPlay(T.bg) : iconPause(T.bg)} ${state.paused ? 'Resume' : 'Pause'}`;
+  if (btn) btn.innerHTML = `${state.paused ? iconPlay(T.bg) : iconPause(T.bg)} ${state.paused ? 'המשך' : 'השהה'}`;
 }
 
 function skipExercise() {
@@ -845,16 +847,15 @@ function renderDone(root) {
   const total = Object.keys(state.progress).length;
   const streak = getStreak();
   const duration = state.lastDuration || SESSION_MIN * 60;
-  const dayTag = PROGRAM.days[state.day].tag;
   const sessionKey = `w${state.week}d${state.day}`;
-  const msg = pickMessage(streak, state.week, dayTag, total);
+  const msg = pickMessage(streak, state.week, total);
 
   const scroll = el('div', `flex:1;overflow-y:auto;padding:calc(env(safe-area-inset-top,12px)+36px) 22px 0;`);
   const body = el('div', `display:flex;flex-direction:column;gap:24px;`);
 
   const top = el('div', `display:flex;flex-direction:column;gap:10px;`);
   const tag = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
-  tag.textContent = 'Practice complete';
+  tag.textContent = 'האימון הושלם';
   const msgDiv = el('div', `font-family:"Instrument Serif",serif;font-size:38px;line-height:1.15;color:${T.fg};font-style:italic;`);
   msgDiv.textContent = msg;
   top.append(tag, msgDiv);
@@ -865,12 +866,12 @@ function renderDone(root) {
     num.textContent = streak;
     const right = el('div', ``);
     const lbl = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
-    lbl.textContent = 'Day streak';
+    lbl.textContent = 'רצף ימים';
     const sub = el('div', `font-size:13px;color:${T.sub};margin-top:4px;`);
-    sub.textContent = streak === 2 ? 'Two in a row. Keep it going.' :
-                      streak === 3 ? 'Three straight. The pattern is set.' :
-                      streak === 7 ? 'A full week without missing.' :
-                      "Don't break the chain.";
+    sub.textContent = streak === 2 ? 'שניים ברצף. תמשיכו כך.' :
+                      streak === 3 ? 'שלושה ברצף. הדפוס נקבע.' :
+                      streak === 7 ? 'שבוע שלם בלי לפספס.' :
+                      'אל תשברו את השרשרת.';
     right.append(lbl, sub);
     badge.append(num, right);
     body.appendChild(top);
@@ -882,16 +883,16 @@ function renderDone(root) {
   const stats = el('div', `display:flex;flex-direction:column;gap:8px;`);
   const durationMin = Math.round(duration / 60);
   [
-    ['Duration', `${durationMin} min`],
-    ['Session',  `Week ${state.week} · Day ${state.day + 1}`],
-    ['Program',  `${total} of 12 done`],
+    ['משך', `${durationMin} דקות`],
+    ['אימון',  `שבוע ${state.week} · יום ${state.day + 1}`],
+    ['תוכנית',  `${total} מתוך 12 הושלמו`],
   ].forEach(([k, v]) => stats.appendChild(renderStat(k, v)));
   body.appendChild(stats);
 
   let sessionRating = null;
   const ratingCard = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:8px;padding:14px 16px;`);
   const ratingHdr = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;`);
-  ratingHdr.textContent = 'How settled did it feel?';
+  ratingHdr.textContent = 'כמה מיושב זה הרגיש?';
   const ratingRow = el('div', `display:flex;gap:8px;`);
   [1,2,3,4,5].forEach(n => {
     const btn = el('button', `flex:1;appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.sub};border-radius:6px;padding:10px 0;font-family:${T.display};font-weight:700;font-size:18px;`);
@@ -915,17 +916,17 @@ function renderDone(root) {
   const ctaWrap = el('div', `padding:14px 22px;padding-bottom:calc(env(safe-area-inset-bottom,14px)+14px);display:flex;gap:10px;flex-shrink:0;`);
 
   const shareBtn = el('button', `flex:1;appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.fg};border-radius:6px;padding:18px;font-family:${T.display};font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;`);
-  shareBtn.textContent = 'Share';
+  shareBtn.textContent = 'שתף';
   shareBtn.onclick = async () => {
     const orig = shareBtn.textContent;
     shareBtn.disabled = true;
     const result = await shareSession(streak, total, duration);
-    shareBtn.textContent = result === 'copied' ? 'Copied' : orig;
+    shareBtn.textContent = result === 'copied' ? 'הועתק' : orig;
     setTimeout(() => { shareBtn.textContent = orig; shareBtn.disabled = false; }, 1500);
   };
 
   const continueBtn = el('button', `flex:2;appearance:none;border:none;background:${T.accent};color:${T.accentT};border-radius:6px;padding:18px 22px;font-family:${T.display};font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:10px;`);
-  continueBtn.innerHTML = `${iconCheck(T.accentT)} Continue`;
+  continueBtn.innerHTML = `${iconCheck(T.accentT)} המשך`;
   continueBtn.onclick = () => {
     if (sessionRating != null) {
       const sessions = loadSessions();
@@ -952,7 +953,7 @@ function renderProgram(root) {
   backBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" stroke="${T.fg}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="10,2 4,7 10,12"/></svg>`;
   backBtn.onclick = () => { state.view = 'home'; render(); };
   const title = el('div', `font-family:${T.display};font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.5px;`);
-  title.textContent = '4-Week Program';
+  title.textContent = 'תוכנית 4 השבועות';
   hdr.append(backBtn, title);
 
   const scroll = el('div', `flex:1;overflow-y:auto;padding:0 22px;`);
@@ -964,7 +965,7 @@ function renderProgram(root) {
   const daySection = el('div', ``);
   const dayHdr = el('div', `margin-bottom:14px;`);
   const dayTag = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
-  dayTag.textContent = `${day.tag} · Practiced 3× a week`;
+  dayTag.textContent = `${day.tag} · מתורגל 3 פעמים בשבוע`;
   const dayTitle = el('div', `font-family:${T.display};font-weight:700;font-size:28px;text-transform:uppercase;letter-spacing:-0.5px;line-height:1;margin-top:4px;`);
   dayTitle.textContent = day.title;
   const daySub = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};margin-top:4px;letter-spacing:1px;`);
@@ -987,7 +988,7 @@ function renderProgram(root) {
       const name = el('span', `font-size:13px;color:${T.fg};`);
       name.textContent = ex.name;
       const week1 = el('span', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};margin-left:auto;flex-shrink:0;`);
-      week1.textContent = `W1: ${ex.variants[0]}`;
+      week1.textContent = `שבוע 1: ${ex.variants[0]}`;
       row.append(name, week1);
       exList.appendChild(row);
     });

@@ -4,7 +4,7 @@
 
 **Q·Flow** is a personal morning Qigong practice app for Chris, built as a sibling to the **Morning Flow / B·Restore** strength-and-mobility app (`cwinter1/workout`). Where B·Restore undoes what desk work does to the body through strength, posture work, and yoga, Q·Flow is a quieter counterpart built around **Baduanjin (Eight Pieces of Brocade)** — the standardized, traditional 8-movement qigong set. The app went through one earlier iteration built around a general, non-standardized flowing-qigong routine (5 broad phases per session); it was replaced with the actual Baduanjin set once it became clear that's what was wanted.
 
-The app is a 4-week program: 20 minutes, 3 mornings a week. The app title is in Hebrew: **Q·Flow · כריס** (כריס = Chris). Layout is `lang="he" dir="rtl"`. Same audience and constraints as B·Restore: iOS Safari, one person, Israel.
+The app is a 4-week program: 20 minutes, 3 mornings a week. The app title is in Hebrew: **Q·Flow · כריס** (כריס = Chris). Layout is `lang="he" dir="rtl"`, and — unlike the workout app, which keeps English body copy inside its RTL shell — **all in-app text and the voice readout are in Hebrew** (see "Localization" below). Same audience and constraints as B·Restore: iOS Safari, one person, Israel.
 
 **Design system**: intentionally identical to B·Restore Dark — same palette, same four fonts, same `el()`-based render architecture, same RTL/Hebrew shell. See `T` object below; do not deviate from it.
 
@@ -101,20 +101,20 @@ let state = {
 
 ## Program Data
 
-`BADUANJIN_PHASES` — the 8 traditional pieces, each its own phase (`b1`..`b8`), each phase containing exactly one exercise (the movement itself):
+`BADUANJIN_PHASES` — the 8 traditional pieces, each its own phase (`b1`..`b8`), each phase containing exactly one exercise (the movement itself). Movement/phase names are stored in Hebrew (`name`); each exercise also carries an English `nameEn` used only for the YouTube search link (see Localization):
 
-| # | Phase name | Movement | Benefit (traditional framing) |
+| # | Phase name (he) | Movement (he / en) | Benefit (traditional framing) |
 |---|------------|----------|--------------------------------|
-| 1 | First | Two Hands Hold Up the Heavens | Regulates the Triple Burner; lengthens the spine |
-| 2 | Second | Drawing the Bow to Shoot the Hawk | Opens the chest; strengthens arms/shoulders/lungs |
-| 3 | Third | Separate Heaven and Earth | Regulates the spleen and stomach |
-| 4 | Fourth | The Wise Owl Gazes Backward | Relieves general strain and fatigue |
-| 5 | Fifth | Sway the Head and Shake the Tail | Clears heat/tension from chest and head |
-| 6 | Sixth | Two Hands Hold the Feet | Strengthens the kidneys and low back |
-| 7 | Seventh | Clench the Fists and Glare Fiercely | Builds strength and qi |
-| 8 | Eighth | Bouncing on Toes and Heels | Shakes the body loose; closes the set |
+| 1 | ראשון | שתי ידיים תומכות בשמיים / Two Hands Hold Up the Heavens | Regulates the Triple Burner; lengthens the spine |
+| 2 | שני | מתיחת הקשת לירות בנץ / Drawing the Bow to Shoot the Hawk | Opens the chest; strengthens arms/shoulders/lungs |
+| 3 | שלישי | הפרדת שמיים וארץ / Separate Heaven and Earth | Regulates the spleen and stomach |
+| 4 | רביעי | הינשוף החכם מביט לאחור / The Wise Owl Gazes Backward | Relieves general strain and fatigue |
+| 5 | חמישי | נדנוד הראש וניעור הזנב / Sway the Head and Shake the Tail | Clears heat/tension from chest and head |
+| 6 | שישי | שתי ידיים אוחזות בכפות הרגליים / Two Hands Hold the Feet | Strengthens the kidneys and low back |
+| 7 | שביעי | קמיצת אגרופים ומבט זועם / Clench the Fists and Glare Fiercely | Builds strength and qi |
+| 8 | שמיני | קפיצות קלות על קצות האצבעות והעקבים / Bouncing on Toes and Heels | Shakes the body loose; closes the set |
 
-`PROGRAM.days[0/1/2]` are **identical** — all three point at `BADUANJIN_PHASES` with the same title/kicker/tag (`BADUANJIN`). This is deliberate: Baduanjin is one complete set practiced the same way each time, not three varying routines. Progression across the 4 weeks is via `variants[0..3]` on each movement (more reps / deeper stance), not different content per day. `renderProgram()` reflects this — it shows the 8-movement breakdown once, not three times, then the shared 4-week × 3-day progress grid (`renderProgressGrid()`, same component used on the home screen).
+`PROGRAM.days[0/1/2]` are **identical** — all three point at `BADUANJIN_PHASES` with the same title/kicker/tag (`"באדואנג'ין"`). This is deliberate: Baduanjin is one complete set practiced the same way each time, not three varying routines. Progression across the 4 weeks is via `variants[0..3]` on each movement (more reps / deeper stance), not different content per day. `renderProgram()` reflects this — it shows the 8-movement breakdown once, not three times, then the shared 4-week × 3-day progress grid (`renderProgressGrid()`, same component used on the home screen).
 
 `SESSION_MIN = 20`. `PROGRAM.phaseShare` splits the session evenly across the 8 phases (`1/8` each = 150s ≈ 2:30 per movement). `phaseSeconds(totalMin)` computes this generically from whatever keys exist in `phaseShare` (no hardcoded phase names) and `buildTimeline(dayIdx, week, totalMin)` builds one timeline item per phase — no special-cased meditation branch, no `rest`-item insertion.
 
@@ -129,7 +129,7 @@ Phase `name` fields are short ordinals ("First".."Eighth") — that's what shows
 | `T` | Palette + font refs, identical to B·Restore |
 | `BADUANJIN_PHASES` | The 8 phases/movements, shared by all 3 `PROGRAM.days` entries |
 | `PROGRAM` | 3 identical day entries (see Program Data above) × 4-week variants |
-| `EX_INFO` | The 8 movements → `{ desc, illo }` — `desc` is a plain-language how-to cue, `illo()` returns an inline SVG stick-figure diagram |
+| `EX_INFO` | Keyed by the Hebrew movement `name` → `{ desc, illo }` — `desc` is a plain-language how-to cue (Hebrew), `illo()` returns an inline SVG stick-figure diagram |
 | `HOME_PHRASES` | 10 home-screen quotes, Qigong-flavored |
 | `SESSION_MIN` | `20` |
 
@@ -141,7 +141,15 @@ Phase `name` fields are short ordinals ("First".."Eighth") — that's what shows
 
 ### Voice readout
 
-`speakText(text)` uses the browser's built-in `speechSynthesis` API (no external service, works offline once the page is loaded, native to iOS Safari) to read a movement's `desc` aloud. Wired to a small speaker-icon button (`iconSpeaker`) next to the "How to do it" header on the preview screen — tap it, it cancels any in-flight utterance and speaks `${exName}. ${desc}`.
+`speakText(text)` uses the browser's built-in `speechSynthesis` API (no external service, works offline once the page is loaded, native to iOS Safari) to read a movement's `desc` aloud. Wired to a small speaker-icon button (`iconSpeaker`) next to the "How to do it" header on the preview screen — tap it, it cancels any in-flight utterance and speaks `${exName}. ${desc}`. `utter.lang = 'he-IL'` is set explicitly so iOS picks a Hebrew voice rather than defaulting to whatever the system locale implies.
+
+### Localization
+
+All in-app text is Hebrew — there's no i18n layer or language switch, since this is a single-language app for one Hebrew-speaking user. Translated content lives directly in the data (`BADUANJIN_PHASES`, `EX_INFO`, `HOME_PHRASES`, `pickMessage`'s message pools) and inline in each `renderX()` function's UI strings.
+
+One deliberate exception: each exercise carries both `name` (Hebrew, displayed and spoken) and `nameEn` (English, used only by `youtubeSearchUrl(nameEn)`). Baduanjin tutorials are overwhelmingly in English/Chinese, so an English search query surfaces far better results than a Hebrew one would for this Chinese-origin content — don't switch that link to the Hebrew name.
+
+`W{n}`/`D{n}` week/day labels are kept as Latin-letter mono abbreviations throughout (headers, chips, progress grid) rather than translated — this matches the sibling workout app's established convention of treating them as compact technical labels, not prose.
 
 ---
 
@@ -149,7 +157,7 @@ Phase `name` fields are short ordinals ("First".."Eighth") — that's what shows
 
 Session lifecycle (`startSession`, `pickDay`, `startTimer`, `updateTimerDisplay`, `skipExercise`, `abortSession`, `finishSession`) mirrors the workout app's implementation as closely as the domain allows — same wake-lock/no-sleep-video handling, same beep/vibrate on transition, same 3-2-1 countdown before a timer starts.
 
-`getStreak()` and `pickMessage(streak, week, dayTag, total)` are ported with Qigong-specific copy (see source for the full message pool — milestones, week+tag combos, general rotation). Since `dayTag` is always `'BADUANJIN'` now, the week+tag combo dict only needs 4 entries (`1-BADUANJIN`..`4-BADUANJIN`), not 12.
+`getStreak()` and `pickMessage(streak, week, total)` are ported with Qigong-specific copy (see source for the full message pool — milestones, week combos, general rotation). The signature dropped a `dayTag` parameter it used to take: since there's only ever one day type (Baduanjin), a `${week}-${dayTag}` combo key was redundant — the combo dict is now just keyed by `week` (1-4) directly.
 
 `shareSession(streak, total, duration)` is a deliberately simple replacement for the workout app's Canvas share-card: it builds a one-line text summary and uses `navigator.share` (falling back to clipboard). No Canvas, no image generation — kept lightweight since it wasn't a specifically requested feature.
 
@@ -164,5 +172,6 @@ Session lifecycle (`startSession`, `pickDay`, `startTimer`, `updateTimerDisplay`
 - Don't add colors outside the `T` object or fonts beyond the four loaded
 - Don't make video the primary movement reference (hardcoded IDs are unverifiable, and ads/intros add friction to a same-movements-every-session practice) — the built-in SVG illustration is the default; the YouTube search link is a small, secondary fallback underneath it
 - Don't reuse `mf.*` localStorage keys — this app shares an origin with `cwinter1/workout`
+- Don't switch the YouTube search link to the Hebrew movement name, or drop the `nameEn` field — English search terms surface real tutorials for this content far better than Hebrew ones do
 - Don't port over Garmin/measurements/photo-journal features unless specifically asked — they don't map onto a breathwork practice
 - Don't add a rotating pool of "ancient Chinese proverbs" or invented historical color. Discussed and explicitly declined (2026-07-06): a lot of what circulates online attributed to Confucius/Laozi is fabricated or mistranslated, and a large AI-generated "wisdom" pool risks presenting invented quotes as authentic. If cultural/historical depth is wanted later, keep it narrow and verifiable — e.g. one factual paragraph on Baduanjin's actual history (roughly Song Dynasty origin, the Yue Fei attribution being legend rather than confirmed fact) on the Program screen, or a couple of properly sourced classical lines — not a large invented pool.
