@@ -8,6 +8,8 @@ The app is a 4-week program: 20 minutes, 3 mornings a week. The app title is in 
 
 **Live URL**: https://cwinter1.github.io/workflow-Qigong/ (GitHub Pages, deploys from `main`).
 
+**Known flakiness (2026-07-06)**: GitHub's own "pages build and deployment" workflow has intermittently failed with `Deployment failed, try again later` (a GitHub-side infra error, not a build/content problem — the Jekyll build step always succeeded) or gotten permanently stuck in `queued`. If the live site doesn't reflect a pushed commit after a minute or two, check Actions for that commit's deployment run before assuming it's a caching issue. Retrying via the Actions API (`rerun_failed_jobs`) has itself gotten stuck; pushing a new trivial commit reliably kicks off a fresh deployment instead.
+
 **Design system**: intentionally identical to B·Restore Dark — same palette, same four fonts, same `el()`-based render architecture, same RTL/Hebrew shell. See `T` object below; do not deviate from it.
 
 **Tone**: dry delivery, genuine warmth, no hype — same voice as B·Restore, adapted for a breath practice rather than a training log.
