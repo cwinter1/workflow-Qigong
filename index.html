@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0e1116">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Q·Flow · כריס</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: #0e1116; font-family: 'Manrope', system-ui, sans-serif; }
+button { font-family: inherit; cursor: pointer; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes rise { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+<div id="root" style="height:100dvh;display:flex;flex-direction:column;"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// PALETTE & THEME — B · Restore · Dark (shared design system)
+// ═══════════════════════════════════════════════════════
+const T = {
+  bg:      '#0e1116',
+  fg:      '#e8e5dd',
+  sub:     '#8a8478',
+  card:    '#16191e',
+  cardLine:'rgba(255,255,255,0.06)',
+  accent:  '#7aa676',
+  accentT: '#0e1116',
+  hairline:'rgba(255,255,255,0.12)',
+  mono:    'rgba(232,229,221,0.65)',
+  pill:    'rgba(255,255,255,0.06)',
+  display: '"Space Grotesk", system-ui, sans-serif',
+  body:    '"Manrope", system-ui, sans-serif',
+  mono_ff: '"JetBrains Mono", ui-monospace, monospace',
+};
+
+// ═══════════════════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════════════════
+function el(tag, style) {
+  const e = document.createElement(tag);
+  if (style) e.style.cssText = style;
+  return e;
+}
+function sectionHeader(text) {
+  const h = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:2px;text-transform:uppercase;`);
+  h.textContent = text;
+  return h;
+}
+function renderStat(key, val) {
+  const row = el('div', `display:flex;justify-content:space-between;align-items:center;padding:16px;background:${T.card};border:1px solid ${T.hairline};border-radius:6px;`);
+  const k = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;`);
+  k.textContent = key;
+  const v = el('div', `font-family:${T.display};font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:0.5px;`);
+  v.textContent = val;
+  row.append(k, v);
+  return row;
+}
+function fmt(s) {
+  if (s < 0) s = 0;
+  return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+}
+
+// ═══════════════════════════════════════════════════════
+// ICONS
+// ═══════════════════════════════════════════════════════
+function iconPlay(c)  { return `<svg width="14" height="14" viewBox="0 0 14 14" fill="${c}"><polygon points="3,1 13,7 3,13"/></svg>`; }
+function iconPause(c) { return `<svg width="14" height="16" viewBox="0 0 14 16" fill="${c}"><rect x="1" y="1" width="4" height="14" rx="1"/><rect x="9" y="1" width="4" height="14" rx="1"/></svg>`; }
+function iconNext(c)  { return `<svg width="14" height="14" viewBox="0 0 14 14" fill="${c}" stroke="${c}" stroke-width="1"><polygon points="2,1 10,7 2,13"/><rect x="11" y="1" width="2" height="12" rx="1"/></svg>`; }
+function iconCheck(c) { return `<svg width="16" height="16" viewBox="0 0 16 16" stroke="${c}" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,8 6,12 14,4"/></svg>`; }
+function iconClose(c) { return `<svg width="14" height="14" viewBox="0 0 14 14" stroke="${c}" stroke-width="1.5" fill="none" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>`; }
+function iconArrow(c) { return `<svg width="16" height="16" viewBox="0 0 16 16" stroke="${c}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,4 10,8 6,12"/></svg>`; }
+
+// ═══════════════════════════════════════════════════════
+// PROGRAM DATA — general flowing qigong + breathwork, 4 weeks × 3 day types
+// ═══════════════════════════════════════════════════════
+const PROGRAM = {
+  weeks: 4,
+  daysPerWeek: 3,
+  // fractions of SESSION_MIN. meditation is fixed at 180s regardless of total.
+  phaseShare: { settle: 2/20, open: 3/20, flow: 9/20, release: 3/20 },
+  days: [
+    {
+      id: 'd1', title: 'Root · Grounding Practice', kicker: 'Find the ground before you move', tag: 'ROOT',
+      phases: [
+        { id:'settle', name:'Ground', intent:'Arrive. Feel your feet before you feel anything else.', exercises:[
+          { name:'Wu Chi Stance',  variants:['60 sec','90 sec','90 sec · eyes closed','120 sec · eyes closed'] },
+          { name:'Rooting Sway',   variants:['10 sways · slow','12 sways','15 sways · deeper knee bend','15 sways · eyes closed'] },
+          { name:'Spine Wave',     variants:['8 waves','10 waves','12 waves · slower','12 waves · full breath each'] },
+        ]},
+        { id:'open', name:'Awaken', intent:'Loosen every joint from the ground up.', exercises:[
+          { name:'Ankle & Knee Circles',        variants:['6 each way each side','8 each way','10 each way','10 each way · eyes closed'] },
+          { name:'Hip Circles',                  variants:['6 each direction','8 each direction','10 each direction','10 each · larger radius'] },
+          { name:'Shoulder Rolls & Arm Swings',  variants:['8 rolls + 8 swings','10 + 10','12 + 12','12 + 12 · full arm circles'] },
+        ]},
+        { id:'flow', name:'Root & Rise', intent:'Feel the ground, then let it lift you.', exercises:[
+          { name:'Holding the Ball',                 variants:['45 sec','60 sec','75 sec','90 sec · lower stance'] },
+          { name:"Push the Earth, Lift the Sky",     variants:['6 each side','8 each side','10 each side','10 each side · pause at top'] },
+          { name:'Bear Walks the Root',               variants:['8 shifts each side','10 each side','12 each side','12 each side · deeper bend'] },
+          { name:'Gathering Qi to Dantian',           variants:['8 rounds','10 rounds','12 rounds','12 rounds · slower exhale'] },
+          { name:'Standing Squat & Rise',             variants:['6 reps · shallow','8 reps','8 reps · deeper','10 reps · deeper, slower'] },
+        ]},
+        { id:'release', name:'Settle', intent:'Let what you built come back down.', exercises:[
+          { name:'Shaking Out',            variants:['20 sec','30 sec','30 sec · add knees soft','40 sec'] },
+          { name:'Rubbing the Kidneys',    variants:['15 sec rub + 15 sec rest','20+20','20+30','30+30'] },
+          { name:'Standing Forward Release', variants:['30 sec','45 sec','60 sec','60 sec · sway gently'] },
+        ]},
+        { id:'meditation', name:'Stillness', intent:'Ground the breath. Three minutes of quiet.', exercises:[
+          { name:'Dantian Breath', variants:['4·4·4·4','4·4·4·4','5·5·5·5','6·6·6·6'] },
+        ]},
+      ],
+    },
+    {
+      id: 'd2', title: 'Flow · Moving Qi', kicker: 'Continuous, wave-like movement', tag: 'FLOW',
+      phases: [
+        { id:'settle', name:'Arrive', intent:'Let the breath lead before the body follows.', exercises:[
+          { name:'Natural Standing Breath', variants:['8 breaths','10 breaths','12 breaths','12 breaths · lengthen exhale'] },
+          { name:'Arm Float',                variants:['6 rounds','8 rounds','10 rounds','10 rounds · eyes closed'] },
+          { name:'Neck & Jaw Release',       variants:['5 each side','6 each side','8 each side','8 each side · slower'] },
+        ]},
+        { id:'open', name:'Warm the Channels', intent:'Small movement, full attention.', exercises:[
+          { name:'Wrist & Finger Circles', variants:['8 each way','10 each way','12 each way','12 each way · add elbow circles'] },
+          { name:'Waist Twists',            variants:['10 each side','12 each side','15 each side','15 each side · deeper twist'] },
+          { name:'Slow March Knee Lifts',   variants:['8 each side','10 each side','12 each side','12 each side · add arm swing'] },
+        ]},
+        { id:'flow', name:'Wave Through the Body', intent:'One continuous movement. Nothing sudden.', exercises:[
+          { name:'Cloud Hands',                variants:['8 each side','10 each side','12 each side','12 each side · lower stance'] },
+          { name:'Wave Hands Forward',          variants:['8 reps','10 reps','12 reps','12 reps · hold breath at full extension'] },
+          { name:'Turning the Millstone',       variants:['6 each direction','8 each direction','10 each direction','10 each direction · wider circle'] },
+          { name:'Crane Extends Its Wings',     variants:['6 rounds','8 rounds','10 rounds','10 rounds · pause at full extension'] },
+          { name:'Swimming Dragon',             variants:['6 each side','8 each side','10 each side','10 each side · slower tempo'] },
+        ]},
+        { id:'release', name:'Smooth the Water', intent:'Bring the wave to stillness.', exercises:[
+          { name:'Palms Press Down',    variants:['6 reps','8 reps','10 reps','10 reps · hold 3s at bottom'] },
+          { name:'Gentle Side Bend',    variants:['30 sec each side','40 sec each side','45 sec each side','60 sec each side'] },
+          { name:'Closing the Circle',  variants:['4 rounds','6 rounds','8 rounds','8 rounds · slower'] },
+        ]},
+        { id:'meditation', name:'Stillness', intent:'Let the wave settle into stillness.', exercises:[
+          { name:'Dantian Breath', variants:['4·4·4·4','4·4·4·4','5·5·5·5','6·6·6·6'] },
+        ]},
+      ],
+    },
+    {
+      id: 'd3', title: 'Still · Breath & Release', kicker: "Slow down until it's just breath", tag: 'STILL',
+      phases: [
+        { id:'settle', name:'Land', intent:'Nowhere else to be.', exercises:[
+          { name:'Standing Arrival',  variants:['60 sec','90 sec','90 sec · eyes closed','120 sec'] },
+          { name:'Three-Part Breath', variants:['6 breaths','8 breaths','10 breaths','10 breaths · slower'] },
+          { name:'Body Scan',         variants:['60 sec','90 sec','120 sec','120 sec · slower pace'] },
+        ]},
+        { id:'open', name:'Loosen', intent:'Just enough movement to let go of the rest.', exercises:[
+          { name:'Spinal Rolls',       variants:['6 reps','8 reps','10 reps','10 reps · pause at each end'] },
+          { name:'Shoulder Drops',     variants:['6 reps','8 reps','10 reps','10 reps · slower'] },
+          { name:'Gentle Head Turns',  variants:['5 each side','6 each side','8 each side','8 each side · add slight tilt'] },
+        ]},
+        { id:'flow', name:'Hold and Breathe', intent:'Stillness with the eyes open. Longer holds, quieter mind.', exercises:[
+          { name:'Embracing the Tree',        variants:['60 sec','90 sec','120 sec','120 sec · lower stance'] },
+          { name:'Golden Rooster Stands',      variants:['20 sec each side','30 sec each side','40 sec each side','45 sec each side'] },
+          { name:'Palms to Sky',               variants:['6 breaths held','8 breaths held','10 breaths held','10 breaths held · eyes closed'] },
+          { name:'Sinking Qi to Dantian',      variants:['6 rounds','8 rounds','10 rounds','10 rounds · slower exhale'] },
+          { name:'Standing Stillness',         variants:['60 sec','90 sec','120 sec','150 sec'] },
+        ]},
+        { id:'release', name:'Come Back', intent:'Softly, softly.', exercises:[
+          { name:'Soft Gaze Return',      variants:['20 sec','30 sec','30 sec','40 sec'] },
+          { name:'Self Embrace',           variants:['20 sec','30 sec','30 sec','40 sec'] },
+          { name:'Gentle Shake & Stretch', variants:['20 sec','30 sec','30 sec','40 sec'] },
+        ]},
+        { id:'meditation', name:'Stillness', intent:'Sit. Breathe. Arrive completely.', exercises:[
+          { name:'Dantian Breath', variants:['4·4·4·4','4·4·4·4','5·5·5·5','6·6·6·6'] },
+        ]},
+      ],
+    },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════
+// MOVEMENT DESCRIPTIONS — plain-language cues, no video tutorials
+// (no verified video IDs exist for this content, so guidance is text-only
+// rather than risk a broken or wrong embed during practice)
+// ═══════════════════════════════════════════════════════
+const EX_INFO = {
+  'Wu Chi Stance': { desc: 'Stand with feet shoulder-width, knees soft, arms relaxed at your sides. Let your weight settle evenly into both feet before you do anything else.' },
+  'Rooting Sway': { desc: 'Shift your weight slowly from one foot to the other, feeling the ground push back with each shift. Keep the movement small and unhurried.' },
+  'Spine Wave': { desc: 'A small wave through the spine — tuck the tailbone under, then release it back to neutral. Let the movement start low and ripple upward.' },
+  'Ankle & Knee Circles': { desc: 'Standing on one leg, circle the free ankle and knee gently in both directions. Switch sides. Wakes the lower joints without any real load.' },
+  'Hip Circles': { desc: 'Hands on your hips, draw slow, wide circles with your pelvis. Keep the upper body relatively still — let the hips do the work.' },
+  'Shoulder Rolls & Arm Swings': { desc: 'Roll the shoulders back and down, then let the arms swing loosely like pendulums. Nothing tense, nothing held.' },
+  'Holding the Ball': { desc: 'Curve both arms in front of your belly as if holding a large, invisible ball. Shift your weight gently side to side while keeping the shape.' },
+  "Push the Earth, Lift the Sky": { desc: 'One hand presses down toward the ground, the other reaches up overhead, alternating slowly with your breath. Let the reach come from the spine, not just the arm.' },
+  'Bear Walks the Root': { desc: 'Rock your weight fully from one foot to the other, like a bear shifting its bulk. Let the knee bend deepen as you go.' },
+  'Gathering Qi to Dantian': { desc: 'Sweep both arms in from the sides in a wide arc, drawing your hands in toward your lower belly. Exhale as the hands arrive.' },
+  'Standing Squat & Rise': { desc: 'Bend the knees very slowly, spine staying long, then rise back up at the same unhurried pace. Sink into the earth, then return.' },
+  'Shaking Out': { desc: "Let the whole body shake loosely — knees, arms, shoulders, all of it. The goal is looseness, not effort." },
+  'Rubbing the Kidneys': { desc: "Rub the lower back briskly with both hands until it's warm, then rest the warm hands there for a moment." },
+  'Standing Forward Release': { desc: 'Hinge slowly forward from the hips, letting the arms and head hang heavy. Knees stay soft the whole time.' },
+  'Natural Standing Breath': { desc: "Stand relaxed and simply notice your breath as it already is. Don't change it yet — just watch it." },
+  'Arm Float': { desc: 'Let the arms float upward on the inhale and sink back down on the exhale. Nothing else in the body moves.' },
+  'Neck & Jaw Release': { desc: 'Slowly turn the head side to side, letting the jaw soften and drop with each turn. Let go of anything you’re holding in the face.' },
+  'Wrist & Finger Circles': { desc: 'Circle the wrists, then open and close the fingers slowly. These are the qi gates — worth waking up properly.' },
+  'Waist Twists': { desc: 'Let the torso rotate gently side to side, arms loose enough to swing with the motion. Let the waist lead, not the shoulders.' },
+  'Slow March Knee Lifts': { desc: 'Lift one knee at a time at an unhurried pace, breathing fully with each lift. Keep the standing leg soft, not locked.' },
+  'Cloud Hands': { desc: 'Shift your weight side to side while both hands circle in front of the body, passing each other like clouds. Keep the motion continuous — no pauses between sides.' },
+  'Wave Hands Forward': { desc: 'Let the hands ripple forward and back like a wave moving through water, weight shifting from back foot to front foot and back.' },
+  'Turning the Millstone': { desc: 'Circle both arms horizontally around your center, as if turning a large millstone. Let the waist initiate the circle, arms follow.' },
+  'Crane Extends Its Wings': { desc: 'Slowly open both arms wide, like a crane unfolding its wings, then gather them back in toward the chest. Full range, no rush.' },
+  'Swimming Dragon': { desc: 'A continuous side-to-side undulation moving through the spine and out through the arms, like a dragon swimming through water.' },
+  'Palms Press Down': { desc: 'Press both palms slowly toward the floor, exhaling fully with each press. Let the shoulders stay down and relaxed throughout.' },
+  'Gentle Side Bend': { desc: "Reach one arm overhead and let the body bend softly to that side. Breathe into the stretch along your ribs, don't force the range." },
+  'Closing the Circle': { desc: 'Draw a slow, wide circle in front of the body with both arms, ending with your hands resting on your belly. This closes the sequence.' },
+  'Standing Arrival': { desc: 'Stand or sit with a tall spine and simply notice the body as it is right now — nothing to fix, nothing to change yet.' },
+  'Three-Part Breath': { desc: 'Breathe first into the belly, then the ribs, then the chest, as one smooth continuous wave. Exhale in the same order, reversed.' },
+  'Body Scan': { desc: 'Move your attention slowly from your feet up to the crown of your head, releasing any tension you notice along the way.' },
+  'Spinal Rolls': { desc: 'Slowly round the spine forward, then lengthen it back to neutral, one vertebra at a time where you can feel it.' },
+  'Shoulder Drops': { desc: 'Lift both shoulders up toward the ears, hold briefly, then let them drop completely on the exhale. Repeat until they stop wanting to creep back up.' },
+  'Gentle Head Turns': { desc: 'Turn the head slowly from side to side, letting the eyes lead the movement. Keep the neck long, not compressed.' },
+  'Embracing the Tree': { desc: 'Curve both arms in front of you as if wrapping around a wide tree trunk. Hold the shape and simply breathe — this is a stillness posture, not a stretch.' },
+  'Golden Rooster Stands': { desc: 'Balance on one leg with the opposite knee lifted and arms loose. Find one fixed point to look at and let the balance settle around it.' },
+  'Palms to Sky': { desc: 'Slowly raise both arms overhead, palms turning to face the sky. Hold at the top and keep breathing rather than rushing back down.' },
+  'Sinking Qi to Dantian': { desc: 'Let both hands slowly lower from the chest down to the belly, guiding the breath down with them as they descend.' },
+  'Standing Stillness': { desc: 'No movement at all — just stand and breathe, letting the mind settle the way water settles when you stop stirring it.' },
+  'Soft Gaze Return': { desc: 'Let the eyes open slowly with a soft, unfocused gaze, gradually bringing awareness back to the room around you.' },
+  'Self Embrace': { desc: 'Wrap both arms gently around yourself and pause there for a moment before the practice ends.' },
+  'Gentle Shake & Stretch': { desc: 'A small full-body shake, then a light stretch upward, signaling to the body that the practice is complete.' },
+  'Dantian Breath': { desc: 'Inhale for the count, hold, exhale for the count, hold — a slow four-part breath centered on the lower belly. This settles the nervous system more than almost anything else in the practice.' },
+};
+
+function getExInfo(name) {
+  return EX_INFO[name] || { desc: 'Move slowly and stay with the breath. If nothing else, don’t rush it.' };
+}
+
+const HOME_PHRASES = [
+  "Twenty minutes. The stillness carries into the rest of the day.",
+  "The breath is already right there. You're just going to notice it.",
+  "Nothing to force here. Just show up and move slowly.",
+  "Three mornings a week. That's the whole ask.",
+  "The body already knows how to settle. This just reminds it.",
+  "Slow is not the same as small. Stay with it.",
+  "You don't have to feel like practicing. You just have to start.",
+  "This is the quiet part of the day, on purpose.",
+  "Four weeks. You're already inside it.",
+  "Whatever the day brings later, this part is yours first.",
+];
+
+function phaseSeconds(totalMin) {
+  const s = PROGRAM.phaseShare, total = totalMin * 60;
+  return {
+    settle:  Math.round(total * s.settle),
+    open:    Math.round(total * s.open),
+    flow:    Math.round(total * s.flow),
+    release: Math.round(total * s.release),
+    meditation: 180,
+  };
+}
+
+function buildTimeline(dayIdx, week, totalMin) {
+  const day = PROGRAM.days[dayIdx];
+  const totals = phaseSeconds(totalMin);
+  const out = [];
+  day.phases.forEach((ph, pi) => {
+    if (ph.id === 'meditation') {
+      out.push({ phaseIdx:pi, phaseId:ph.id, phaseName:ph.name, intent:ph.intent,
+        exIdx:0, exName:ph.exercises[0].name, variant:ph.exercises[0].variants[week-1],
+        seconds:totals.meditation, kind:'meditation' });
+      return;
+    }
+    const each = Math.max(20, Math.round(totals[ph.id] / ph.exercises.length));
+    ph.exercises.forEach((ex, ei) => {
+      out.push({ phaseIdx:pi, phaseId:ph.id, phaseName:ph.name, intent:ph.intent,
+        exIdx:ei, exName:ex.name, variant:ex.variants[week-1], seconds:each, kind:'exercise' });
+    });
+  });
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════
+// STATE — keys namespaced 'qf.*' (this app shares the cwinter1.github.io
+// origin with the workout app, so localStorage keys must not collide with 'mf.*')
+// ═══════════════════════════════════════════════════════
+let state = {
+  view: 'home',
+  week: 1, day: 0,
+  timeline: [],
+  idx: 0,
+  left: 0,
+  paused: false,
+  progress: {},
+  lastDuration: 0,
+  startedAt: null,
+};
+
+try { state.progress = JSON.parse(localStorage.getItem('qf.progress') || '{}'); } catch {}
+function saveProgress() { try { localStorage.setItem('qf.progress', JSON.stringify(state.progress)); } catch {} }
+
+function nextSession() {
+  for (let w = 1; w <= 4; w++)
+    for (let d = 0; d < 3; d++)
+      if (!state.progress[`w${w}d${d}`]) return { week: w, day: d };
+  return { week: 4, day: 2 };
+}
+const ns = nextSession();
+state.week = ns.week; state.day = ns.day;
+
+const SESSION_MIN = 20;
+let timerInterval = null;
+
+let _audioCtx = null;
+let _wakeLock = null;
+let _noSleepVideo = null;
+function _ensureNoSleepVideo() {
+  if (_noSleepVideo) return;
+  _noSleepVideo = document.createElement('video');
+  _noSleepVideo.setAttribute('playsinline', '');
+  _noSleepVideo.setAttribute('muted', '');
+  _noSleepVideo.loop = true;
+  _noSleepVideo.style.cssText = 'position:fixed;top:-2px;left:-2px;width:1px;height:1px;opacity:0.01;pointer-events:none;z-index:-1;';
+  _noSleepVideo.src = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAA2JtZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0MiByMjQ3OSBkZDc5YTYxIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNCAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiBwaWN0LXN0cnVjdD0wIGludGVybGFjZWQ9MCBibHVyYXlfY29tcGF0PTAgY29uc3RyYWluZWRfaW50cmE9MCBiZnJhbWVzPTMgYl9weXJhbWlkPTIgYl9hZGFwdD0xIGJfYmlhcz0wIGRpcmVjdD0xIHdlaWdodGI9MSBvcGVuX2dvcD0wIHdlaWdodHA9MiBrZXlpbnQ9MjUwIGtleWludF9taW49MjUgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IHZidl9tYXhyYXRlPTc2OCB2YnZfYnVmc2l6ZT0zMDAwIGNyZl9tYXg9MC4wIG5hbF9ocmQ9bm9uZSBmaWxsZXI9MCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAPZWxpYnggAAAHNm1vb3YAAABsbXZoZAAAAAAAAAAAAAAAAAAAA+gAAAPoAAEAAAEAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAACFHRyYWsAAABcdGtoZAAAAA8AAAAAAAAAAAAAAAEAAAAAAAADhAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAgAAAAIAAAAAACRlZHRzAAAAHGVsc3QAAAAAAAAAAQAAAnQAAAAAAAEAAAABhG1kaWEAAAAgbWRoZAAAAAAAAAAAAAAAAAAAAAQAAAAZVxAAAAAAAC1oZGxyAAAAAAAAAAB2aWRlAAAAAAAAAAAAAAAAVmlkZW9IYW5kbGVyAAAAATBtaW5mAAAAFHZtaGQAAAABAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAADwc3RibAAAAQBzdHNkAAAAAAAAAAEAAADwYXZjMQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAIAAIAASAAAAEgAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABj//wAAADZhdmNDASJAC//hABhnQgAlimRQWAAADxAAAWkAGPHCmWABAAZo6+PLIsAAAAAYc3R0cwAAAAAAAAABAAAAGQAAAgAAAAAUc3RzcwAAAAAAAAABAAAAAQAAAIhjdHRzAAAAAAAAABcAAAABAAACAAAAAAEAAAUAAAAAAQAAAgAAAAABAAAAAAAAAAEAAAIAAAAAAQAABQAAAAABAAACAAAAAAEAAAAAAAAAAQAAAgAAAAABAAACAAAAAAEAAAUAAAAAAQAAAgAAAAABAAAAAAAAAAEAAAIAAAAAAQAABQAAAAABAAACAAAAAAEAAAAAAAAAAQAAAgAAAAAcc3RzYwAAAAAAAAABAAAAAgAAAAgAAAABAAAATHN0c3oAAAAAAAAAAAAAABkAAADhAAAAbgAAAEsAAAAuAAAAKQAAACoAAAAnAAAAJgAAACcAAAAlAAAAJgAAACYAAAAlAAAAJQAAACYAAAAlAAAAJQAAACUAAAAlAAAAJQAAACUAAAAlAAAAJgAAAAhzdGNvAAAAAAAAAAEAAAAsAAAAYnVkdGEAAABabWV0YQAAAAAAAAAhaGRscgAAAAAAAAAAbWRpcmFwcGwAAAAAAAAAAAAAAAAtaWxzdAAAACWpdG9vAAAAHWRhdGEAAAABAAAAAExhdmY1Ni40MC4xMDE=';
+  document.body.appendChild(_noSleepVideo);
+}
+async function acquireWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      _wakeLock = await navigator.wakeLock.request('screen');
+      _wakeLock.addEventListener('release', () => { _wakeLock = null; });
+      return;
+    }
+  } catch {}
+  try { _ensureNoSleepVideo(); await _noSleepVideo.play(); } catch {}
+}
+function releaseWakeLock() {
+  try { if (_wakeLock) { _wakeLock.release(); _wakeLock = null; } } catch {}
+  try { if (_noSleepVideo) _noSleepVideo.pause(); } catch {}
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && (state.view === 'session' || state.view === 'meditation')) acquireWakeLock();
+});
+function getAudioCtx() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+// ═══════════════════════════════════════════════════════
+// SESSION HISTORY STORAGE
+// ═══════════════════════════════════════════════════════
+function loadSessions()  { try { return JSON.parse(localStorage.getItem('qf.sessions') || '[]'); } catch { return []; } }
+function saveSessions(s) { try { localStorage.setItem('qf.sessions', JSON.stringify(s)); } catch {} }
+
+function getStreak() {
+  const sessions = loadSessions();
+  if (!sessions.length) return 0;
+  const dayKeys = [...new Set(sessions.map(s => {
+    const d = new Date(s.at);
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  }))].sort();
+  const last = new Date(sessions[sessions.length - 1].at);
+  const today = new Date(); today.setHours(0,0,0,0); last.setHours(0,0,0,0);
+  if ((today - last) / 86400000 > 1) return 0;
+  let streak = 1;
+  for (let i = dayKeys.length - 2; i >= 0; i--) {
+    const a = dayKeys[i].split('-').map(Number);
+    const b = dayKeys[i+1].split('-').map(Number);
+    const da = new Date(a[0], a[1], a[2]);
+    const db = new Date(b[0], b[1], b[2]);
+    if ((db - da) / 86400000 === 1) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function pickMessage(streak, week, dayTag, total) {
+  if (total === 1)   return "First one done. The rest builds from here.";
+  if (total === 12)  return "Twelve sessions. The whole program, done.";
+  if (streak === 21) return "Twenty-one mornings straight. This is just how mornings work now.";
+  if (streak === 14) return "Two weeks without a gap. The practice found its footing.";
+  if (streak === 10) return "Ten straight mornings. That's not effort anymore — that's rhythm.";
+  if (streak === 7)  return "A full week unbroken.";
+  if (streak === 5)  return "Five in a row. The body's starting to expect this.";
+  if (streak === 3)  return "Three straight mornings.";
+  if (streak === 2)  return "Two in a row. The second one is the one that counts.";
+
+  const combo = `${week}-${dayTag}`;
+  const comboMessages = {
+    '1-ROOT':  "Week one, rooting practice. Finding the ground is the whole lesson.",
+    '1-FLOW':  "First flow session behind you. Nothing to master yet — just to notice.",
+    '1-STILL': "Stillness on day three. That one asks the most and gives the least applause.",
+    '2-ROOT':  "Second week, rooting again. The stance is starting to feel less foreign.",
+    '2-FLOW':  "Week two flow. The movement is smoother than you think it is.",
+    '2-STILL': "Stillness, week two. The mind wanders less than it did seven days ago.",
+    '3-ROOT':  "Three weeks of rooting. You don't have to think about your feet anymore.",
+    '3-FLOW':  "Week three flow. The wave moves through you now, not just past you.",
+    '3-STILL': "Stillness, week three. This is where it stops feeling like waiting.",
+    '4-ROOT':  "Final rooting session. Four weeks of finding the ground.",
+    '4-FLOW':  "Last flow session of the program. The movement is just yours now.",
+    '4-STILL': "Last stillness session. You built a quiet place you can return to.",
+  };
+  if (comboMessages[combo]) return comboMessages[combo];
+
+  const pool = [
+    "Qigong doesn't ask for effort. It asks for attention.",
+    "The stillness session is the one most people skip first. It's also the one that does the most.",
+    "You don't build calm in the practice. You build it in how it stays with you after.",
+    "Twenty minutes of this is worth more than an hour you only do twice a month.",
+    "The body settles into what you consistently ask of it. You're asking.",
+    "Consistency without intensity beats intensity without consistency. Every time.",
+    "Done. Another morning you'll never have to start cold again.",
+    "Quiet work. No performance. This is what it looks like.",
+    "The streak is a byproduct. The breath is the thing.",
+    `${total} sessions. You keep arriving.`,
+    "Another one in the books. It adds up whether you feel it today or not.",
+    "Not every session feels settled. This one counts the same.",
+    "The gap between wanting stillness and taking it is exactly this — twenty minutes, this morning.",
+    "One more session behind you. That's the whole practice.",
+  ];
+  return pool[total % pool.length];
+}
+
+async function shareSession(streak, total, duration) {
+  const day = PROGRAM.days[state.day];
+  const text = `${Math.round(duration / 60)} min ${day.tag.toLowerCase()} practice — week ${state.week}, day ${state.day + 1}. ${streak >= 2 ? streak + ' day streak. ' : ''}${total} sessions total.`;
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Q·Flow', text }); return 'shared'; } catch { return null; }
+  }
+  try { await navigator.clipboard.writeText(text); return 'copied'; } catch { return null; }
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER ENGINE
+// ═══════════════════════════════════════════════════════
+function render() {
+  const root = document.getElementById('root');
+  root.innerHTML = '';
+  root.style.cssText = `height:100dvh;display:flex;flex-direction:column;background:${T.bg};color:${T.fg};font-family:${T.body};-webkit-font-smoothing:antialiased;overflow:hidden;animation:rise .25s ease;`;
+
+  if (state.view === 'home')            renderHome(root);
+  else if (state.view === 'preview')    renderPreview(root);
+  else if (state.view === 'session')    renderSession(root);
+  else if (state.view === 'done')       renderDone(root);
+  else if (state.view === 'program')    renderProgram(root);
+}
+
+// ═══════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════
+function renderHome(root) {
+  const day = PROGRAM.days[state.day];
+  const totalDone = Object.keys(state.progress).length;
+  const doneThisWeek = [0,1,2].map(d => !!state.progress[`w${state.week}d${d}`]);
+
+  const scroll = el('div', `flex:1;overflow-y:auto;padding-top:calc(env(safe-area-inset-top,12px) + 16px);`);
+  const pad = el('div', `padding:0 22px;display:flex;flex-direction:column;gap:22px;`);
+
+  const eyebrow = el('div', `display:flex;align-items:baseline;gap:14px;`);
+  const mono = el('div', `font-family:${T.mono_ff};font-size:52px;font-weight:500;line-height:0.9;letter-spacing:-2px;color:${T.fg};`);
+  const dot = el('span', `color:${T.accent};`); dot.textContent = '·';
+  mono.textContent = `W${state.week}`;
+  mono.appendChild(dot);
+  mono.appendChild(document.createTextNode(`D${state.day+1}`));
+  const line = el('div', `flex:1;height:1px;background:${T.hairline};align-self:center;`);
+  const cnt = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};letter-spacing:1.5px;`);
+  cnt.textContent = `${totalDone}/12`;
+  eyebrow.append(mono, line, cnt);
+
+  const titleWrap = el('div', ``);
+  const parts = day.title.split(' · ');
+  const titleDiv = el('div', `font-family:${T.display};font-size:44px;font-weight:700;line-height:0.95;text-transform:uppercase;letter-spacing:-1.2px;`);
+  parts.forEach((p, i) => {
+    const d2 = el('div', i === 1 ? `color:${T.accent};` : '');
+    d2.textContent = p;
+    titleDiv.appendChild(d2);
+  });
+  const kickerDiv = el('div', `margin-top:8px;font-family:${T.mono_ff};font-size:11px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;`);
+  kickerDiv.textContent = `${day.kicker} · ${SESSION_MIN} min`;
+  titleWrap.append(titleDiv, kickerDiv);
+
+  const phraseCard = el('div', `padding:12px 0;`);
+  const phraseText = el('div', `font-family:"Instrument Serif",serif;font-size:20px;font-style:italic;line-height:1.35;color:${T.sub};`);
+  phraseText.textContent = HOME_PHRASES[totalDone % HOME_PHRASES.length];
+  phraseCard.appendChild(phraseText);
+
+  const beginBtn = el('button', `appearance:none;border:none;background:${T.accent};color:${T.accentT};border-radius:6px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;font-family:${T.display};font-weight:700;font-size:18px;letter-spacing:0.5px;text-transform:uppercase;width:100%;`);
+  const beginL = el('span', `display:flex;align-items:center;gap:12px;`);
+  beginL.innerHTML = `${iconPlay(T.accentT)} Begin`;
+  const beginR = el('span', `font-family:${T.mono_ff};font-size:13px;font-weight:500;`);
+  beginR.textContent = `${SESSION_MIN}:00`;
+  beginBtn.append(beginL, beginR);
+  beginBtn.onclick = startSession;
+
+  const phaseBreak = renderPhaseChips(day);
+
+  const weekSection = el('div', ``);
+  weekSection.appendChild(sectionHeader('This week'));
+  const weekRow = el('div', `display:flex;gap:6px;margin-top:10px;`);
+  [0,1,2].forEach(d2 => {
+    const done = doneThisWeek[d2];
+    const isToday = d2 === state.day;
+    const btn = el('button', `flex:1;border:none;background:${done ? T.accent : T.card};color:${done ? T.accentT : T.fg};border-radius:6px;padding:14px 12px;text-align:left;${isToday && !done ? `outline:1.5px solid ${T.accent};outline-offset:-1.5px;` : ''}`);
+    const lbl = el('div', `font-family:${T.mono_ff};font-size:10px;letter-spacing:1.5px;opacity:0.7;text-transform:uppercase;`);
+    lbl.textContent = `D${d2+1}`;
+    const status = el('div', `font-family:${T.display};font-weight:700;font-size:18px;margin-top:6px;line-height:1;text-transform:uppercase;letter-spacing:0.5px;`);
+    status.textContent = done ? 'Done' : isToday ? 'Today' : 'Open';
+    const tag = el('div', `font-family:${T.mono_ff};font-size:10px;margin-top:6px;opacity:0.7;text-transform:uppercase;letter-spacing:1px;`);
+    tag.textContent = PROGRAM.days[d2].tag;
+    btn.append(lbl, status, tag);
+    btn.onclick = () => pickDay(state.week, d2);
+    weekRow.appendChild(btn);
+  });
+  weekSection.appendChild(weekRow);
+
+  const progGrid = renderProgressGrid();
+
+  const bottomLinks = el('div', `display:flex;flex-direction:column;gap:8px;`);
+  const progBtn = el('button', `appearance:none;background:transparent;border:1px solid ${T.hairline};color:${T.fg};border-radius:6px;padding:14px 16px;font-family:${T.mono_ff};font-size:11px;letter-spacing:1.5px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;width:100%;`);
+  progBtn.innerHTML = `<span>4-week program</span><span style="opacity:0.6">${iconArrow(T.fg)}</span>`;
+  progBtn.onclick = () => { state.view = 'program'; render(); };
+  bottomLinks.append(progBtn);
+
+  pad.append(eyebrow, titleWrap, phraseCard, beginBtn, phaseBreak, weekSection, progGrid, bottomLinks, el('div', `height:40px;`));
+  scroll.appendChild(pad);
+  root.appendChild(scroll);
+}
+
+function renderPhaseChips(day) {
+  const totals = phaseSeconds(SESSION_MIN);
+  const wrap = el('div', ``);
+  wrap.appendChild(sectionHeader('Session breakdown'));
+  const list = el('div', `margin-top:10px;display:flex;flex-direction:column;gap:4px;`);
+  day.phases.forEach((ph, i) => {
+    const mins = ph.id === 'meditation' ? 3 : Math.round(totals[ph.id] / 60);
+    const pct = Math.min(100, (mins / SESSION_MIN) * 100);
+    const row = el('div', `display:flex;align-items:center;gap:8px;`);
+    const num = el('span', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};width:18px;letter-spacing:1px;`);
+    num.textContent = `0${i+1}`;
+    const name = el('span', `font-family:${T.display};font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`);
+    name.textContent = ph.name;
+    const bar = el('div', `flex:1;height:6px;background:${T.pill};border-radius:2px;position:relative;`);
+    const fill = el('div', `position:absolute;left:0;top:0;bottom:0;width:${pct}%;background:${i === day.phases.length-1 ? T.accent : T.fg};border-radius:2px;`);
+    bar.appendChild(fill);
+    const time = el('span', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};width:28px;text-align:right;`);
+    time.textContent = `${mins}m`;
+    row.append(num, name, bar, time);
+    list.appendChild(row);
+  });
+  wrap.appendChild(list);
+  return wrap;
+}
+
+function renderProgressGrid() {
+  const wrap = el('div', ``);
+  wrap.appendChild(sectionHeader('4-week progress'));
+  const grid = el('div', `margin-top:10px;display:grid;grid-template-columns:auto repeat(3,1fr);gap:6px;align-items:center;`);
+  grid.appendChild(el('span', ``));
+  [0,1,2].forEach(d => {
+    const lbl = el('span', `font-family:${T.mono_ff};font-size:9px;color:${T.mono};letter-spacing:1px;text-transform:uppercase;text-align:center;`);
+    lbl.textContent = `D${d+1}`;
+    grid.appendChild(lbl);
+  });
+  [1,2,3,4].forEach(w => {
+    const wlbl = el('span', `font-family:${T.mono_ff};font-size:9px;color:${T.mono};letter-spacing:1px;`);
+    wlbl.textContent = `W${w}`;
+    grid.appendChild(wlbl);
+    [0,1,2].forEach(d => {
+      const done = !!state.progress[`w${w}d${d}`];
+      const btn = el('button', `border:none;height:28px;border-radius:2px;background:${done ? T.accent : T.pill};width:100%;`);
+      btn.onclick = () => pickDay(w, d);
+      grid.appendChild(btn);
+    });
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+// ═══════════════════════════════════════════════════════
+// SESSION START
+// ═══════════════════════════════════════════════════════
+function startSession() {
+  clearInterval(timerInterval);
+  try {
+    const ctx = getAudioCtx();
+    const buf = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+  } catch {}
+  state.timeline = buildTimeline(state.day, state.week, SESSION_MIN);
+  state.idx = 0;
+  state.left = state.timeline[0].seconds;
+  state.paused = false;
+  state.startedAt = Date.now();
+  state.view = 'preview';
+  acquireWakeLock();
+  render();
+}
+
+function pickDay(w, d) {
+  state.week = w; state.day = d;
+  startSession();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (state.paused) return;
+    state.left--;
+    if (state.left <= 0) {
+      clearInterval(timerInterval);
+      beep();
+      if (state.idx + 1 < state.timeline.length) {
+        state.idx++;
+        state.left = state.timeline[state.idx].seconds;
+        state.view = 'preview';
+        render();
+      } else {
+        finishSession();
+      }
+    } else {
+      if (state.left <= 10 && state.left > 0) beepTick(state.left <= 3 ? 880 : 440);
+      updateTimerDisplay();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const cur = state.timeline[state.idx];
+
+  const numEl = document.getElementById('timer-num');
+  if (numEl) numEl.textContent = fmt(state.left);
+
+  const medCountdown = document.getElementById('med-countdown');
+  if (medCountdown) {
+    medCountdown.textContent = fmt(state.left);
+    const { label, scale, phaseDur, withinPhase } = getMedState();
+    const boxEl = document.getElementById('med-box');
+    const labelEl = document.getElementById('med-label');
+    const countEl = document.getElementById('med-count');
+    if (boxEl) boxEl.style.transform = `scale(${scale})`;
+    if (labelEl) labelEl.textContent = label;
+    if (countEl) countEl.textContent = Math.max(0, phaseDur - withinPhase);
+  }
+
+  const progEl = document.getElementById('session-prog');
+  if (progEl) {
+    const totalSec = state.timeline.reduce((a, t) => a + t.seconds, 0);
+    const doneSec = state.timeline.slice(0, state.idx).reduce((a, t) => a + t.seconds, 0) + (cur.seconds - state.left);
+    progEl.style.width = `${(doneSec / totalSec) * 100}%`;
+  }
+}
+
+function getMedState() {
+  const cur = state.timeline[state.idx];
+  const m = cur.variant.match(/(\d+)/g);
+  const phases = m ? m.slice(0, 4).map(Number) : [4, 4, 4, 4];
+  const cycleSec = phases.reduce((a, b) => a + b, 0);
+  const elapsed = cur.seconds - state.left;
+  const inCycle = elapsed % cycleSec;
+  const phaseLabels = ['Inhale', 'Hold', 'Exhale', 'Hold'];
+  let phaseIdx = 0, accum = 0, withinPhase = 0;
+  for (let i = 0; i < 4; i++) {
+    if (inCycle < accum + phases[i]) { phaseIdx = i; withinPhase = inCycle - accum; break; }
+    accum += phases[i];
+  }
+  const phaseDur = phases[phaseIdx];
+  let scale = 0.55;
+  if (phaseIdx === 0) scale = 0.55 + 0.45 * (withinPhase / phaseDur);
+  else if (phaseIdx === 1) scale = 1;
+  else if (phaseIdx === 2) scale = 1 - 0.45 * (withinPhase / phaseDur);
+  return { phases, phaseIdx, withinPhase, phaseDur, label: phaseLabels[phaseIdx], scale };
+}
+
+// ═══════════════════════════════════════════════════════
+// PREVIEW — description before each movement
+// ═══════════════════════════════════════════════════════
+function renderPreview(root) {
+  const cur = state.timeline[state.idx];
+  const day_ = PROGRAM.days[state.day];
+  const info = getExInfo(cur.exName);
+
+  const hdr = el('div', `padding:calc(env(safe-area-inset-top,12px) + 12px) 22px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;`);
+  const closeBtn = el('button', `appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.fg};width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;`);
+  closeBtn.innerHTML = iconClose(T.fg);
+  closeBtn.onclick = abortSession;
+  const hdrMid = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};letter-spacing:2px;text-align:center;`);
+  hdrMid.innerHTML = `<div>W${state.week}·D${state.day+1}</div><div style="margin-top:2px;opacity:0.6;">${cur.phaseName}</div>`;
+  hdr.append(closeBtn, hdrMid, el('div', `width:36px;`));
+
+  const phaseBars = el('div', `padding:0 22px;display:flex;gap:4px;flex-shrink:0;`);
+  day_.phases.forEach((ph, i) => {
+    const col = el('div', `flex:1;display:flex;flex-direction:column;gap:4px;`);
+    const bar = el('div', `height:3px;background:${i <= cur.phaseIdx ? T.accent : T.pill};`);
+    const lbl = el('div', `font-family:${T.mono_ff};font-size:9px;color:${i === cur.phaseIdx ? T.fg : T.mono};letter-spacing:1px;text-transform:uppercase;`);
+    lbl.textContent = ph.name.split(' ')[0];
+    col.append(bar, lbl);
+    phaseBars.appendChild(col);
+  });
+
+  const body = el('div', `flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:18px;`);
+
+  const upTag = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
+  upTag.textContent = state.idx === 0 ? 'First up' : 'Up next';
+
+  const exTitle = el('div', `font-family:${T.display};font-weight:700;font-size:38px;line-height:0.95;text-transform:uppercase;letter-spacing:-1px;`);
+  exTitle.textContent = cur.exName;
+
+  const chips = el('div', `display:flex;gap:8px;flex-wrap:wrap;`);
+  const makeChip = (label, val) => {
+    const chip = el('div', `display:inline-flex;align-items:center;gap:8px;background:${T.pill};border:1px solid ${T.hairline};border-radius:4px;padding:8px 12px;`);
+    const lbl2 = el('span', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;`);
+    lbl2.textContent = label;
+    const div = el('span', `width:1px;height:14px;background:${T.hairline};`);
+    const val2 = el('span', `font-family:${T.mono_ff};font-size:13px;color:${T.fg};`);
+    val2.textContent = val;
+    chip.append(lbl2, div, val2);
+    return chip;
+  };
+  chips.append(makeChip(`Week ${state.week}`, cur.variant), makeChip('Duration', fmt(cur.seconds)));
+
+  const descBox = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:6px;padding:16px;`);
+  const descTitle = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;`);
+  descTitle.textContent = 'How to do it';
+  const descText = el('div', `font-size:14px;color:${T.fg};line-height:1.65;`);
+  descText.textContent = info.desc;
+  descBox.append(descTitle, descText);
+
+  const intentBox = el('div', `display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:${T.pill};border-radius:6px;`);
+  const intentIcon = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.accent};flex-shrink:0;margin-top:2px;letter-spacing:1px;`);
+  intentIcon.textContent = cur.kind === 'meditation' ? 'MED' : 'TIP';
+  const intentText = el('div', `font-size:13px;color:${T.sub};line-height:1.5;`);
+  intentText.textContent = cur.intent;
+  intentBox.append(intentIcon, intentText);
+
+  body.append(upTag, exTitle, chips, descBox, intentBox, el('div', `height:20px;`));
+
+  const ctaWrap = el('div', `padding:14px 22px;padding-bottom:calc(env(safe-area-inset-bottom,14px)+14px);flex-shrink:0;`);
+  const ctaBtn = el('button', `width:100%;appearance:none;border:none;background:${T.accent};color:${T.accentT};border-radius:6px;padding:20px 22px;font-family:${T.display};font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:12px;`);
+  ctaBtn.innerHTML = `${iconPlay(T.accentT)} <span>Ready — Let's go</span>`;
+  ctaBtn.onclick = () => {
+    state.view = 'session';
+    render();
+    const ov = el('div', `position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:${T.bg}cc;z-index:999;`);
+    const num = el('div', `font-family:${T.display};font-weight:700;font-size:120px;color:${T.fg};line-height:1;`);
+    ov.appendChild(num);
+    document.body.appendChild(ov);
+    let count = 3;
+    const tick = () => {
+      num.textContent = count;
+      beepTick(count === 1 ? 880 : 440);
+      if (count === 1) {
+        setTimeout(() => { ov.remove(); startTimer(); }, 900);
+      } else {
+        count--;
+        setTimeout(tick, 1000);
+      }
+    };
+    tick();
+  };
+  ctaWrap.appendChild(ctaBtn);
+
+  root.append(hdr, phaseBars, body, ctaWrap);
+}
+
+// ═══════════════════════════════════════════════════════
+// SESSION
+// ═══════════════════════════════════════════════════════
+function renderSession(root) {
+  const cur = state.timeline[state.idx];
+  const day_ = PROGRAM.days[state.day];
+  const totalSec = state.timeline.reduce((a, t) => a + t.seconds, 0);
+  const doneSec = state.timeline.slice(0, state.idx).reduce((a, t) => a + t.seconds, 0);
+
+  if (cur.kind === 'meditation') { renderMeditation(root); return; }
+
+  const hdr = el('div', `padding:calc(env(safe-area-inset-top,12px) + 12px) 22px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;`);
+  const closeBtn = el('button', `appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.fg};width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;`);
+  closeBtn.innerHTML = iconClose(T.fg);
+  closeBtn.onclick = abortSession;
+  const hdrMid = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};letter-spacing:2px;`);
+  hdrMid.textContent = `W${state.week}·D${state.day+1}·${String(state.idx+1).padStart(2,'0')}/${String(state.timeline.length).padStart(2,'0')}`;
+  hdr.append(closeBtn, hdrMid, el('div', `width:36px;`));
+
+  const phaseBars = el('div', `padding:0 22px;display:flex;gap:4px;flex-shrink:0;`);
+  day_.phases.forEach((ph, i) => {
+    const col = el('div', `flex:1;display:flex;flex-direction:column;gap:4px;`);
+    const bar = el('div', `height:3px;background:${i <= cur.phaseIdx ? T.accent : T.pill};`);
+    const lbl = el('div', `font-family:${T.mono_ff};font-size:9px;color:${i === cur.phaseIdx ? T.fg : T.mono};letter-spacing:1px;text-transform:uppercase;`);
+    lbl.textContent = ph.name.split(' ')[0];
+    col.append(bar, lbl);
+    phaseBars.appendChild(col);
+  });
+
+  const body = el('div', `flex:1;padding:20px 22px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;`);
+
+  const phaseTag = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
+  phaseTag.textContent = `${cur.phaseName} — ${cur.intent}`;
+
+  const exTitle = el('div', `font-family:${T.display};font-weight:700;font-size:42px;line-height:0.95;text-transform:uppercase;letter-spacing:-1px;`);
+  exTitle.textContent = cur.exName;
+
+  const variant = el('div', `font-family:${T.mono_ff};font-size:13px;color:${T.fg};letter-spacing:0.5px;`);
+  variant.textContent = cur.variant;
+
+  const timerCard = el('div', `border:1px solid ${T.hairline};border-radius:6px;padding:20px 22px;display:flex;justify-content:space-between;align-items:flex-end;`);
+  const timerL = el('div', ``);
+  const timerLbl = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;`);
+  timerLbl.textContent = 'Remaining';
+  const timerNum = el('div', `font-family:${T.mono_ff};font-size:64px;font-weight:500;color:${T.fg};letter-spacing:-3px;line-height:0.9;margin-top:4px;font-variant-numeric:tabular-nums;`);
+  timerNum.id = 'timer-num';
+  timerNum.textContent = fmt(state.left);
+  timerL.append(timerLbl, timerNum);
+  const timerR = el('div', `text-align:right;max-width:140px;`);
+  const nextLbl = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;`);
+  nextLbl.textContent = 'Next';
+  const nextName = el('div', `font-family:${T.display};font-weight:700;font-size:14px;margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;color:${T.fg};`);
+  nextName.textContent = state.timeline[state.idx + 1]?.exName || 'Complete';
+  timerR.append(nextLbl, nextName);
+  timerCard.append(timerL, timerR);
+
+  const progWrap = el('div', ``);
+  const progHdr = el('div', `display:flex;justify-content:space-between;font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;`);
+  const sessLeft = el('span', ``); sessLeft.textContent = 'Session';
+  const sessRight = el('span', ``); sessRight.textContent = fmt(totalSec - doneSec) + ' left';
+  progHdr.append(sessLeft, sessRight);
+  const progBg = el('div', `height:4px;background:${T.pill};margin-top:6px;`);
+  const progFill = el('div', `height:100%;width:${(doneSec/totalSec)*100}%;background:${T.accent};`);
+  progFill.id = 'session-prog';
+  progBg.appendChild(progFill);
+  progWrap.append(progHdr, progBg);
+
+  body.append(phaseTag, exTitle, variant, timerCard, progWrap);
+
+  root.append(hdr, phaseBars, body, renderControls());
+}
+
+// ═══════════════════════════════════════════════════════
+// MEDITATION
+// ═══════════════════════════════════════════════════════
+function renderMeditation(root) {
+  const cur = state.timeline[state.idx];
+  const { label, scale, phaseDur, withinPhase } = getMedState();
+
+  const hdr = el('div', `padding:calc(env(safe-area-inset-top,12px)+12px) 22px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;`);
+  const closeBtn = el('button', `appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.fg};width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;`);
+  closeBtn.innerHTML = iconClose(T.fg);
+  closeBtn.onclick = abortSession;
+  const hdrMid = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};letter-spacing:2px;text-transform:uppercase;`);
+  hdrMid.textContent = `Stillness · ${cur.variant}`;
+  hdr.append(closeBtn, hdrMid, el('div', `width:36px;`));
+
+  const body = el('div', `flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;gap:32px;`);
+
+  const boxWrap = el('div', `position:relative;width:260px;height:260px;display:flex;align-items:center;justify-content:center;`);
+  const outerRing = el('div', `position:absolute;inset:0;border-radius:8px;border:1px solid ${T.hairline};`);
+  const breathBox = el('div', `width:220px;height:220px;border-radius:8px;background:${T.accent}22;border:1.5px solid ${T.accent};transform:scale(${scale});transition:transform 1s linear;display:flex;align-items:center;justify-content:center;flex-direction:column;`);
+  breathBox.id = 'med-box';
+  const breathLabel = el('div', `font-family:${T.display};font-size:28px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:${T.fg};`);
+  breathLabel.id = 'med-label';
+  breathLabel.textContent = label;
+  const breathCount = el('div', `font-family:${T.mono_ff};font-size:36px;font-weight:500;color:${T.accent};margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-1px;`);
+  breathCount.id = 'med-count';
+  breathCount.textContent = Math.max(0, phaseDur - withinPhase);
+  breathBox.append(breathLabel, breathCount);
+  boxWrap.append(outerRing, breathBox);
+
+  const timeRemain = el('div', `text-align:center;`);
+  const timeLbl = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};letter-spacing:2px;text-transform:uppercase;`);
+  timeLbl.textContent = 'Time remaining';
+  const timeNum = el('div', `font-family:${T.mono_ff};font-size:32px;font-weight:500;color:${T.fg};margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-1px;`);
+  timeNum.id = 'med-countdown';
+  timeNum.textContent = fmt(state.left);
+  timeRemain.append(timeLbl, timeNum);
+
+  body.append(boxWrap, timeRemain);
+  root.append(hdr, body, renderControls());
+}
+
+function renderControls() {
+  const ctrls = el('div', `padding:14px 22px;display:flex;gap:10px;flex-shrink:0;padding-bottom:calc(env(safe-area-inset-bottom,14px)+14px);`);
+  const pauseBtn = el('button', `flex:2;appearance:none;border:none;background:${T.fg};color:${T.bg};border-radius:6px;padding:18px;font-family:${T.display};font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:10px;`);
+  pauseBtn.id = 'pause-btn';
+  pauseBtn.innerHTML = `${state.paused ? iconPlay(T.bg) : iconPause(T.bg)} ${state.paused ? 'Resume' : 'Pause'}`;
+  pauseBtn.onclick = togglePause;
+  const skipBtn = el('button', `flex:1;appearance:none;background:transparent;border:1px solid ${T.hairline};color:${T.fg};border-radius:6px;padding:18px;font-family:${T.display};font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:8px;`);
+  skipBtn.innerHTML = `${iconNext(T.fg)} Skip`;
+  skipBtn.onclick = skipExercise;
+  ctrls.append(pauseBtn, skipBtn);
+  return ctrls;
+}
+
+function togglePause() {
+  state.paused = !state.paused;
+  const btn = document.getElementById('pause-btn');
+  if (btn) btn.innerHTML = `${state.paused ? iconPlay(T.bg) : iconPause(T.bg)} ${state.paused ? 'Resume' : 'Pause'}`;
+}
+
+function skipExercise() {
+  clearInterval(timerInterval);
+  if (state.idx + 1 < state.timeline.length) {
+    state.idx++;
+    state.left = state.timeline[state.idx].seconds;
+    state.view = 'preview';
+    render();
+  } else {
+    finishSession();
+  }
+}
+
+function abortSession() {
+  clearInterval(timerInterval);
+  releaseWakeLock();
+  const ns2 = nextSession();
+  state.week = ns2.week; state.day = ns2.day;
+  state.view = 'home';
+  render();
+}
+
+function finishSession() {
+  clearInterval(timerInterval);
+  releaseWakeLock();
+  const key = `w${state.week}d${state.day}`;
+  const now = Date.now();
+  const duration = state.startedAt ? Math.round((now - state.startedAt) / 1000) : SESSION_MIN * 60;
+  state.progress[key] = { done: true, at: now };
+  saveProgress();
+  const sessions = loadSessions();
+  sessions.push({ key, at: now, duration, week: state.week, day: state.day, dayTitle: PROGRAM.days[state.day].title, dayTag: PROGRAM.days[state.day].tag });
+  saveSessions(sessions);
+  state.lastDuration = duration;
+  state.view = 'done';
+  render();
+}
+
+// ═══════════════════════════════════════════════════════
+// DONE
+// ═══════════════════════════════════════════════════════
+function renderDone(root) {
+  const total = Object.keys(state.progress).length;
+  const streak = getStreak();
+  const duration = state.lastDuration || SESSION_MIN * 60;
+  const dayTag = PROGRAM.days[state.day].tag;
+  const sessionKey = `w${state.week}d${state.day}`;
+  const msg = pickMessage(streak, state.week, dayTag, total);
+
+  const scroll = el('div', `flex:1;overflow-y:auto;padding:calc(env(safe-area-inset-top,12px)+36px) 22px 0;`);
+  const body = el('div', `display:flex;flex-direction:column;gap:24px;`);
+
+  const top = el('div', `display:flex;flex-direction:column;gap:10px;`);
+  const tag = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
+  tag.textContent = 'Practice complete';
+  const msgDiv = el('div', `font-family:"Instrument Serif",serif;font-size:38px;line-height:1.15;color:${T.fg};font-style:italic;`);
+  msgDiv.textContent = msg;
+  top.append(tag, msgDiv);
+
+  if (streak >= 2) {
+    const badge = el('div', `display:flex;align-items:center;gap:14px;padding:16px 18px;background:${T.card};border:1px solid ${T.accent}44;border-radius:8px;`);
+    const num = el('div', `font-family:${T.display};font-size:48px;font-weight:700;color:${T.accent};line-height:1;`);
+    num.textContent = streak;
+    const right = el('div', ``);
+    const lbl = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
+    lbl.textContent = 'Day streak';
+    const sub = el('div', `font-size:13px;color:${T.sub};margin-top:4px;`);
+    sub.textContent = streak === 2 ? 'Two in a row. Keep it going.' :
+                      streak === 3 ? 'Three straight. The pattern is set.' :
+                      streak === 7 ? 'A full week without missing.' :
+                      "Don't break the chain.";
+    right.append(lbl, sub);
+    badge.append(num, right);
+    body.appendChild(top);
+    body.appendChild(badge);
+  } else {
+    body.appendChild(top);
+  }
+
+  const stats = el('div', `display:flex;flex-direction:column;gap:8px;`);
+  const durationMin = Math.round(duration / 60);
+  [
+    ['Duration', `${durationMin} min`],
+    ['Session',  `Week ${state.week} · Day ${state.day + 1}`],
+    ['Program',  `${total} of 12 done`],
+  ].forEach(([k, v]) => stats.appendChild(renderStat(k, v)));
+  body.appendChild(stats);
+
+  let sessionRating = null;
+  const ratingCard = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:8px;padding:14px 16px;`);
+  const ratingHdr = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;`);
+  ratingHdr.textContent = 'How settled did it feel?';
+  const ratingRow = el('div', `display:flex;gap:8px;`);
+  [1,2,3,4,5].forEach(n => {
+    const btn = el('button', `flex:1;appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.sub};border-radius:6px;padding:10px 0;font-family:${T.display};font-weight:700;font-size:18px;`);
+    btn.textContent = n;
+    btn.onclick = () => {
+      sessionRating = n;
+      ratingRow.querySelectorAll('button').forEach((b, i) => {
+        b.style.background = i + 1 === n ? T.accent : 'transparent';
+        b.style.color = i + 1 === n ? T.accentT : T.sub;
+        b.style.border = `1px solid ${i + 1 === n ? T.accent : T.hairline}`;
+      });
+    };
+    ratingRow.appendChild(btn);
+  });
+  ratingCard.append(ratingHdr, ratingRow);
+  body.appendChild(ratingCard);
+
+  body.appendChild(el('div', `height:24px;`));
+  scroll.appendChild(body);
+
+  const ctaWrap = el('div', `padding:14px 22px;padding-bottom:calc(env(safe-area-inset-bottom,14px)+14px);display:flex;gap:10px;flex-shrink:0;`);
+
+  const shareBtn = el('button', `flex:1;appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.fg};border-radius:6px;padding:18px;font-family:${T.display};font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;`);
+  shareBtn.textContent = 'Share';
+  shareBtn.onclick = async () => {
+    const orig = shareBtn.textContent;
+    shareBtn.disabled = true;
+    const result = await shareSession(streak, total, duration);
+    shareBtn.textContent = result === 'copied' ? 'Copied' : orig;
+    setTimeout(() => { shareBtn.textContent = orig; shareBtn.disabled = false; }, 1500);
+  };
+
+  const continueBtn = el('button', `flex:2;appearance:none;border:none;background:${T.accent};color:${T.accentT};border-radius:6px;padding:18px 22px;font-family:${T.display};font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:10px;`);
+  continueBtn.innerHTML = `${iconCheck(T.accentT)} Continue`;
+  continueBtn.onclick = () => {
+    if (sessionRating != null) {
+      const sessions = loadSessions();
+      const si = sessions.findIndex(s => s.key === sessionKey && s.at === (sessions[sessions.length - 1]?.key === sessionKey ? sessions[sessions.length - 1].at : s.at));
+      const lastIdx = sessions.length - 1;
+      if (lastIdx >= 0 && sessions[lastIdx].key === sessionKey) { sessions[lastIdx].rating = sessionRating; saveSessions(sessions); }
+    }
+    const ns2 = nextSession();
+    state.week = ns2.week; state.day = ns2.day;
+    state.view = 'home';
+    render();
+  };
+  ctaWrap.append(shareBtn, continueBtn);
+
+  root.append(scroll, ctaWrap);
+}
+
+// ═══════════════════════════════════════════════════════
+// PROGRAM
+// ═══════════════════════════════════════════════════════
+function renderProgram(root) {
+  const hdr = el('div', `padding:calc(env(safe-area-inset-top,12px)+12px) 22px 12px;display:flex;align-items:center;gap:14px;flex-shrink:0;`);
+  const backBtn = el('button', `appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.fg};width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;`);
+  backBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" stroke="${T.fg}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="10,2 4,7 10,12"/></svg>`;
+  backBtn.onclick = () => { state.view = 'home'; render(); };
+  const title = el('div', `font-family:${T.display};font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:0.5px;`);
+  title.textContent = '4-Week Program';
+  hdr.append(backBtn, title);
+
+  const scroll = el('div', `flex:1;overflow-y:auto;padding:0 22px;`);
+  const body = el('div', `display:flex;flex-direction:column;gap:28px;padding-bottom:40px;margin-top:8px;`);
+
+  PROGRAM.days.forEach((day, di) => {
+    const daySection = el('div', ``);
+    const dayHdr = el('div', `margin-bottom:14px;`);
+    const dayTag = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
+    dayTag.textContent = `Day ${di + 1} · ${day.tag}`;
+    const dayTitle = el('div', `font-family:${T.display};font-weight:700;font-size:28px;text-transform:uppercase;letter-spacing:-0.5px;line-height:1;margin-top:4px;`);
+    dayTitle.textContent = day.title;
+    const daySub = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};margin-top:4px;letter-spacing:1px;`);
+    daySub.textContent = day.kicker;
+    dayHdr.append(dayTag, dayTitle, daySub);
+
+    const phaseList = el('div', `display:flex;flex-direction:column;gap:6px;`);
+    day.phases.forEach(ph => {
+      const phCard = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:6px;padding:14px;`);
+      const phHdr = el('div', `display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;`);
+      const phName = el('div', `font-family:${T.display};font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;`);
+      phName.textContent = ph.name;
+      const phIntent = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:0.5px;max-width:200px;text-align:right;`);
+      phIntent.textContent = ph.intent;
+      phHdr.append(phName, phIntent);
+
+      const exList = el('div', `display:flex;flex-direction:column;gap:4px;`);
+      ph.exercises.forEach((ex, ei) => {
+        const row = el('div', `display:flex;align-items:baseline;gap:8px;`);
+        const num = el('span', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:1px;flex-shrink:0;`);
+        num.textContent = `${ei+1}.`;
+        const name = el('span', `font-size:13px;color:${T.fg};`);
+        name.textContent = ex.name;
+        const week1 = el('span', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};margin-left:auto;flex-shrink:0;`);
+        week1.textContent = `W1: ${ex.variants[0]}`;
+        row.append(num, name, week1);
+        exList.appendChild(row);
+      });
+      phCard.append(phHdr, exList);
+      phaseList.appendChild(phCard);
+    });
+
+    const weekProg = el('div', `margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;`);
+    [1,2,3,4].forEach(w => {
+      const done = !!state.progress[`w${w}d${di}`];
+      const btn = el('button', `border:none;background:${done ? T.accent : T.pill};color:${done ? T.accentT : T.mono};border-radius:4px;padding:10px 6px;font-family:${T.mono_ff};font-size:10px;letter-spacing:1px;text-transform:uppercase;`);
+      btn.textContent = done ? `W${w} ✓` : `W${w}`;
+      btn.onclick = () => pickDay(w, di);
+      weekProg.appendChild(btn);
+    });
+
+    daySection.append(dayHdr, phaseList, weekProg);
+    body.appendChild(daySection);
+  });
+
+  scroll.appendChild(body);
+  root.append(hdr, scroll);
+}
+
+// ═══════════════════════════════════════════════════════
+// SOUND
+// ═══════════════════════════════════════════════════════
+async function beep() {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state !== 'running') await ctx.resume();
+    const t = ctx.currentTime + 0.05;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine'; o.frequency.setValueAtTime(660, t);
+    g.gain.setValueAtTime(0.3, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+    o.start(t); o.stop(t + 0.4);
+    if (navigator.vibrate) navigator.vibrate([60, 30, 60]);
+  } catch {}
+}
+async function beepTick(freq) {
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state !== 'running') await ctx.resume();
+    const t = ctx.currentTime + 0.05;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine'; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.15, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    o.start(t); o.stop(t + 0.17);
+  } catch {}
+}
+
+// ═══════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════
+render();
+</script>
+</body>
+</html>
