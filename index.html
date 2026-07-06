@@ -123,29 +123,77 @@ const PROGRAM = {
 };
 
 // ═══════════════════════════════════════════════════════
-// MOVEMENT DESCRIPTIONS — plain-language cues, no video tutorials
-// (no verified video IDs exist for this content, so guidance is text-only
-// rather than risk a broken or wrong embed during practice — a "Watch on
-// YouTube" search link on the preview screen covers that instead)
+// MOVEMENT ILLUSTRATIONS — simple built-in stick-figure diagrams.
+// No video: no ads, no intros, no loading, works offline, shows instantly.
 // ═══════════════════════════════════════════════════════
-const EX_INFO = {
-  'Two Hands Hold Up the Heavens': { desc: 'Stand with feet shoulder-width, interlace your fingers and turn the palms up in front of the belly. Inhale as you press the palms overhead, straightening through the whole spine. Exhale as you separate the hands and lower them back down. Start from a relaxed, upright stance before the first rep.' },
-  'Drawing the Bow to Shoot the Hawk': { desc: 'From a horse stance, cross the arms in front of the chest. Extend one arm out to the side as if drawing a bow, while the other hand pulls back like gripping the bowstring. Exhale fully on each draw, then alternate sides.' },
-  'Separate Heaven and Earth': { desc: 'Standing tall, raise one arm overhead with the palm pressing up, while the other hand presses down toward the floor at your side. Feel the spine lengthen between the two presses, then switch sides.' },
-  'The Wise Owl Gazes Backward': { desc: 'Stand relaxed with arms at your sides. Slowly turn your head to look behind you over one shoulder, keeping the hips facing forward. Return to center and repeat to the other side.' },
-  'Sway the Head and Shake the Tail': { desc: 'From a low horse stance, lean the torso forward slightly and circle the head and upper body in a wide arc to one side, as if shaking out heat through the tailbone. Alternate sides slowly.' },
-  'Two Hands Hold the Feet': { desc: 'Bend forward from the hips and reach both hands toward your feet, knees soft. Then reverse the motion, sliding the hands up the back of the legs and spine to standing, arching gently backward at the top.' },
-  'Clench the Fists and Glare Fiercely': { desc: 'From a horse stance, clench both fists at your hips. Punch one fist forward with a firm exhale and a focused gaze, then draw it back and repeat with the other side.' },
-  'Bouncing on Toes and Heels': { desc: 'Rise up onto the balls of your feet, then drop your heels to the ground with a light, springy bounce. Let it travel gently up through the whole body. Finish the last rep by standing quietly for a few breaths.' },
-};
+function svgFigure(inner) {
+  return `<svg viewBox="0 0 100 140" width="100%" height="180" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">${inner}</svg>`;
+}
+function bone(pts, color) {
+  return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+function headC(cx, cy, color) {
+  return `<circle cx="${cx}" cy="${cy}" r="9" fill="none" stroke="${color}" stroke-width="4"/>`;
+}
+function groundLine() {
+  return `<line x1="15" y1="132" x2="85" y2="132" stroke="${T.hairline}" stroke-width="2" stroke-linecap="round"/>`;
+}
+const LEGS_NARROW = () => bone('50,75 43,105 40,130', T.fg) + bone('50,75 57,105 60,130', T.fg);
+const LEGS_HORSE  = () => bone('50,75 30,100 22,130', T.fg) + bone('50,75 70,100 78,130', T.fg);
 
 function getExInfo(name) {
   return EX_INFO[name] || { desc: 'Move slowly and stay with the breath. If nothing else, don’t rush it.' };
 }
 
-function youtubeSearchUrl(name) {
-  return `https://www.youtube.com/results?search_query=${encodeURIComponent(name + ' qigong')}`;
-}
+const EX_INFO = {
+  'Two Hands Hold Up the Heavens': {
+    desc: 'Stand with feet shoulder-width, interlace your fingers and turn the palms up in front of the belly. Inhale as you press the palms overhead, straightening through the whole spine. Exhale as you separate the hands and lower them back down. Start from a relaxed, upright stance before the first rep.',
+    illo: () => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg) + headC(50,18,T.fg)
+      + bone('40,36 28,22 32,6', T.accent) + bone('60,36 72,22 68,6', T.accent)),
+  },
+  'Drawing the Bow to Shoot the Hawk': {
+    desc: 'From a horse stance, cross the arms in front of the chest. Extend one arm out to the side as if drawing a bow, while the other hand pulls back like gripping the bowstring. Exhale fully on each draw, then alternate sides.',
+    illo: () => svgFigure(groundLine() + LEGS_HORSE() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
+      + bone('60,36 78,32 96,30', T.accent) + bone('40,36 26,44 20,54', T.accent)),
+  },
+  'Separate Heaven and Earth': {
+    desc: 'Standing tall, raise one arm overhead with the palm pressing up, while the other hand presses down toward the floor at your side. Feel the spine lengthen between the two presses, then switch sides.',
+    illo: () => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
+      + bone('60,36 68,20 62,4', T.accent) + bone('40,36 34,54 28,70', T.accent)),
+  },
+  'The Wise Owl Gazes Backward': {
+    desc: 'Stand relaxed with arms at your sides. Slowly turn your head to look behind you over one shoulder, keeping the hips facing forward. Return to center and repeat to the other side.',
+    illo: () => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg)
+      + bone('40,36 34,55 32,70', T.fg) + bone('60,36 66,55 68,70', T.fg)
+      + headC(58,20,T.accent) + bone('70,16 80,20 74,26', T.accent)),
+  },
+  'Sway the Head and Shake the Tail': {
+    desc: 'From a low horse stance, lean the torso forward slightly and circle the head and upper body in a wide arc to one side, as if shaking out heat through the tailbone. Alternate sides slowly.',
+    illo: () => svgFigure(groundLine() + LEGS_HORSE()
+      + bone('50,75 32,42 22,18', T.accent) + headC(22,18,T.accent)
+      + bone('32,42 16,58', T.fg) + bone('32,42 50,62', T.fg)),
+  },
+  'Two Hands Hold the Feet': {
+    desc: 'Bend forward from the hips and reach both hands toward your feet, knees soft. Then reverse the motion, sliding the hands up the back of the legs and spine to standing, arching gently backward at the top.',
+    // Drawn side-on — a front view collapses a forward fold onto one vertical line.
+    illo: () => svgFigure(groundLine() + bone('38,78 40,108 42,130', T.fg)
+      + bone('38,78 56,80 70,85', T.fg) + headC(82,87,T.fg)
+      + bone('70,85 80,108 76,129', T.accent)),
+  },
+  'Clench the Fists and Glare Fiercely': {
+    desc: 'From a horse stance, clench both fists at your hips. Punch one fist forward with a firm exhale and a focused gaze, then draw it back and repeat with the other side.',
+    illo: () => svgFigure(groundLine() + LEGS_HORSE() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
+      + bone('40,36 24,34 8,32', T.accent) + bone('60,36 64,48 62,60', T.fg)),
+  },
+  'Bouncing on Toes and Heels': {
+    desc: 'Rise up onto the balls of your feet, then drop your heels to the ground with a light, springy bounce. Let it travel gently up through the whole body. Finish the last rep by standing quietly for a few breaths.',
+    illo: () => svgFigure(groundLine() + bone('50,75 43,105 40,127 46,133', T.fg) + bone('50,75 57,105 60,127 54,133', T.fg)
+      + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
+      + bone('40,36 36,55 38,68', T.fg) + bone('60,36 64,55 62,68', T.fg)
+      + `<path d="M30,120 Q34,113 38,120" fill="none" stroke="${T.accent}" stroke-width="2.5" stroke-linecap="round"/>`
+      + `<path d="M62,120 Q66,113 70,120" fill="none" stroke="${T.accent}" stroke-width="2.5" stroke-linecap="round"/>`),
+  },
+};
 
 const HOME_PHRASES = [
   "Twenty minutes. The stillness carries into the rest of the day.",
@@ -582,20 +630,17 @@ function renderPreview(root) {
   };
   chips.append(makeChip(`Week ${state.week}`, cur.variant), makeChip('Duration', fmt(cur.seconds)));
 
+  // Built-in stick-figure diagram — no video, so no ads/intros/loading before
+  // a movement that repeats every single session.
+  const illoBox = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:8px;padding:8px 16px;`);
+  if (info.illo) illoBox.innerHTML = info.illo();
+
   const descBox = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:6px;padding:16px;`);
   const descTitle = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;`);
   descTitle.textContent = 'How to do it';
   const descText = el('div', `font-size:14px;color:${T.fg};line-height:1.65;`);
   descText.textContent = info.desc;
   descBox.append(descTitle, descText);
-
-  // No verified video IDs exist for this content, so this opens a real YouTube
-  // search rather than risk embedding a broken or wrong tutorial mid-practice.
-  const watchLink = el('a', `display:flex;align-items:center;justify-content:space-between;text-decoration:none;background:transparent;border:1px solid ${T.hairline};color:${T.fg};border-radius:6px;padding:14px 16px;font-family:${T.mono_ff};font-size:11px;letter-spacing:1.5px;text-transform:uppercase;`);
-  watchLink.href = youtubeSearchUrl(cur.exName);
-  watchLink.target = '_blank';
-  watchLink.rel = 'noopener';
-  watchLink.innerHTML = `<span>Watch on YouTube</span><span style="opacity:0.6">${iconArrow(T.fg)}</span>`;
 
   const intentBox = el('div', `display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:${T.pill};border-radius:6px;`);
   const intentIcon = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.accent};flex-shrink:0;margin-top:2px;letter-spacing:1px;`);
@@ -604,7 +649,10 @@ function renderPreview(root) {
   intentText.textContent = cur.intent;
   intentBox.append(intentIcon, intentText);
 
-  body.append(upTag, exTitle, chips, descBox, watchLink, intentBox, el('div', `height:20px;`));
+  const rows = [upTag, exTitle, chips];
+  if (info.illo) rows.push(illoBox);
+  rows.push(descBox, intentBox, el('div', `height:20px;`));
+  body.append(...rows);
 
   const ctaWrap = el('div', `padding:14px 22px;padding-bottom:calc(env(safe-area-inset-bottom,14px)+14px);flex-shrink:0;`);
   const ctaBtn = el('button', `width:100%;appearance:none;border:none;background:${T.accent};color:${T.accentT};border-radius:6px;padding:20px 22px;font-family:${T.display};font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:12px;`);

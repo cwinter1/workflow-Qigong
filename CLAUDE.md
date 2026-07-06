@@ -21,7 +21,7 @@ This is a **separate app**, not a mode inside the workout app. It intentionally 
 
 It intentionally does **not** carry over:
 - Garmin sleep/activity tracking, body measurements, progress photos, Canvas share cards, Google Sheets sync, or the `puter.ai` voice-coaching integration — none of those map onto a breathwork practice and weren't requested
-- Hardcoded YouTube video IDs — there was no way to verify real tutorial videos for this content, so the preview screen instead links out to a YouTube search for the movement name (`youtubeSearchUrl(name)`, opens in a new tab) rather than risk a broken or wrong embed during practice
+- Video of any kind — first tried a YouTube search link (`youtubeSearchUrl(name)`), but real-world use showed ads and intros add real friction to a practice built around the same 8 movements every session. Replaced with built-in stick-figure SVG diagrams instead (`EX_INFO[name].illo()`) — instant, offline, no ads.
 - The box-breathing meditation screen (`renderMeditation`/`getMedState`) from the earlier iteration — removed when the program switched to Baduanjin, since breath is threaded through each of the 8 movements individually rather than bolted on as a separate closing exercise. Don't re-add it without re-introducing a matching `kind:'meditation'` timeline item.
 
 **Important — shared origin, separate storage.** Both apps are GitHub Pages project sites under `cwinter1.github.io` (different paths, same origin), so `localStorage` is shared between them. Q·Flow uses the `qf.*` key prefix (`qf.progress`, `qf.sessions`) specifically to avoid colliding with the workout app's `mf.*` keys. Never rename these to `mf.*` or anything that could collide.
@@ -72,7 +72,7 @@ Single `<div id="root">` rendered entirely by JS. `render()` clears `root.innerH
 ```
 render()
   → renderHome()       — home screen
-  → renderPreview()    — movement preview (description + intent + "Watch on YouTube" link) before each item
+  → renderPreview()    — movement preview (stick-figure diagram + description + intent) before each item
   → renderSession()    — active timer + movement display
   → renderDone()       — post-practice completion screen
   → renderProgram()    — program overview (the 8 movements, shown once) + 4-week progress grid
@@ -129,11 +129,15 @@ Phase `name` fields are short ordinals ("First".."Eighth") — that's what shows
 | `T` | Palette + font refs, identical to B·Restore |
 | `BADUANJIN_PHASES` | The 8 phases/movements, shared by all 3 `PROGRAM.days` entries |
 | `PROGRAM` | 3 identical day entries (see Program Data above) × 4-week variants |
-| `EX_INFO` | The 8 movements → `{ desc }`, a plain-language how-to cue. No `gif`/video field. |
+| `EX_INFO` | The 8 movements → `{ desc, illo }` — `desc` is a plain-language how-to cue, `illo()` returns an inline SVG stick-figure diagram |
 | `HOME_PHRASES` | 10 home-screen quotes, Qigong-flavored |
 | `SESSION_MIN` | `20` |
 
-`getExInfo(name)` falls back to a generic cue for any name not in `EX_INFO`.
+`getExInfo(name)` falls back to a generic cue for any name not in `EX_INFO` (no `illo` fallback — `renderPreview` just skips the diagram box if `info.illo` is absent).
+
+### Illustrations
+
+`svgFigure(inner)` wraps a `viewBox="0 0 100 140"` stick figure. Shared helpers: `bone(points, color)` (a `<polyline>` limb — 2+ points), `headC(cx, cy, color)` (head circle), `groundLine()`, and stance presets `LEGS_NARROW()` / `LEGS_HORSE()`. Each movement's `illo()` composes these with hand-picked coordinates for that pose — there's no generic pose parameterization, just 8 hand-tuned diagrams. Left/right limbs always originate from distinct shoulder points (`x=40` / `x=60`, not a shared `x=50` point) — sharing one origin makes two opposite-reaching limbs visually merge into a single line. "Two Hands Hold the Feet" is drawn side-on rather than front-facing, since a forward fold collapses onto one vertical line in a frontal view.
 
 ---
 
@@ -154,6 +158,6 @@ Session lifecycle (`startSession`, `pickDay`, `startTimer`, `updateTimerDisplay`
 - Don't add emojis
 - Don't push directly to main
 - Don't add colors outside the `T` object or fonts beyond the four loaded
-- Don't hardcode YouTube video IDs without a way to verify them
+- Don't add video (hardcoded IDs are unverifiable; even a search link adds ad/loading friction to a same-movements-every-session practice) — use the built-in SVG illustrations instead
 - Don't reuse `mf.*` localStorage keys — this app shares an origin with `cwinter1/workout`
 - Don't port over Garmin/measurements/photo-journal features unless specifically asked — they don't map onto a breathwork practice
