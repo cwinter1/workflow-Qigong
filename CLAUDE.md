@@ -162,6 +162,7 @@ Session lifecycle (`startSession`, `pickDay`, `startTimer`, `updateTimerDisplay`
 - Don't add emojis
 - Don't push directly to main
 - Don't add colors outside the `T` object or fonts beyond the four loaded
-- Don't add video (hardcoded IDs are unverifiable; even a search link adds ad/loading friction to a same-movements-every-session practice) — use the built-in SVG illustrations instead
+- Don't make video the primary movement reference (hardcoded IDs are unverifiable, and ads/intros add friction to a same-movements-every-session practice) — the built-in SVG illustration is the default; the YouTube search link is a small, secondary fallback underneath it
 - Don't reuse `mf.*` localStorage keys — this app shares an origin with `cwinter1/workout`
 - Don't port over Garmin/measurements/photo-journal features unless specifically asked — they don't map onto a breathwork practice
+- Don't add a rotating pool of "ancient Chinese proverbs" or invented historical color. Discussed and explicitly declined (2026-07-06): a lot of what circulates online attributed to Confucius/Laozi is fabricated or mistranslated, and a large AI-generated "wisdom" pool risks presenting invented quotes as authentic. If cultural/historical depth is wanted later, keep it narrow and verifiable — e.g. one factual paragraph on Baduanjin's actual history (roughly Song Dynasty origin, the Yue Fei attribution being legend rather than confirmed fact) on the Program screen, or a couple of properly sourced classical lines — not a large invented pool.
