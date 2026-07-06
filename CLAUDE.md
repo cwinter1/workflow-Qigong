@@ -2,7 +2,7 @@
 
 ## Purpose & Identity
 
-**Q·Flow** is a personal morning Qigong practice app for Chris, built as a sibling to the **Morning Flow / B·Restore** strength-and-mobility app (`cwinter1/workout`). Where B·Restore undoes what desk work does to the body through strength, posture work, and yoga, Q·Flow is a quieter counterpart: a general flowing Qigong + breathwork practice — not tied to a single named tradition (not Baduanjin, not a specific animal-frolics set) — built around grounding, continuous movement, and stillness.
+**Q·Flow** is a personal morning Qigong practice app for Chris, built as a sibling to the **Morning Flow / B·Restore** strength-and-mobility app (`cwinter1/workout`). Where B·Restore undoes what desk work does to the body through strength, posture work, and yoga, Q·Flow is a quieter counterpart built around **Baduanjin (Eight Pieces of Brocade)** — the standardized, traditional 8-movement qigong set. The app went through one earlier iteration built around a general, non-standardized flowing-qigong routine (5 broad phases per session); it was replaced with the actual Baduanjin set once it became clear that's what was wanted.
 
 The app is a 4-week program: 20 minutes, 3 mornings a week. The app title is in Hebrew: **Q·Flow · כריס** (כריס = Chris). Layout is `lang="he" dir="rtl"`. Same audience and constraints as B·Restore: iOS Safari, one person, Israel.
 
@@ -21,7 +21,8 @@ This is a **separate app**, not a mode inside the workout app. It intentionally 
 
 It intentionally does **not** carry over:
 - Garmin sleep/activity tracking, body measurements, progress photos, Canvas share cards, Google Sheets sync, or the `puter.ai` voice-coaching integration — none of those map onto a breathwork practice and weren't requested
-- Hardcoded YouTube video IDs — there was no way to verify real tutorial videos for this content, so movement guidance is text-only (`EX_INFO[name].desc`) rather than risk a broken or mismatched embed during practice
+- Hardcoded YouTube video IDs — there was no way to verify real tutorial videos for this content, so the preview screen instead links out to a YouTube search for the movement name (`youtubeSearchUrl(name)`, opens in a new tab) rather than risk a broken or wrong embed during practice
+- The box-breathing meditation screen (`renderMeditation`/`getMedState`) from the earlier iteration — removed when the program switched to Baduanjin, since breath is threaded through each of the 8 movements individually rather than bolted on as a separate closing exercise. Don't re-add it without re-introducing a matching `kind:'meditation'` timeline item.
 
 **Important — shared origin, separate storage.** Both apps are GitHub Pages project sites under `cwinter1.github.io` (different paths, same origin), so `localStorage` is shared between them. Q·Flow uses the `qf.*` key prefix (`qf.progress`, `qf.sessions`) specifically to avoid colliding with the workout app's `mf.*` keys. Never rename these to `mf.*` or anything that could collide.
 
@@ -71,14 +72,13 @@ Single `<div id="root">` rendered entirely by JS. `render()` clears `root.innerH
 ```
 render()
   → renderHome()       — home screen
-  → renderPreview()    — movement preview (description + intent) before each item
-  → renderSession()    — active timer + movement display (dispatches to renderMeditation for the closing phase)
-  → renderMeditation() — box-breathing visualization
+  → renderPreview()    — movement preview (description + intent + "Watch on YouTube" link) before each item
+  → renderSession()    — active timer + movement display
   → renderDone()       — post-practice completion screen
-  → renderProgram()    — 4-week program overview
+  → renderProgram()    — program overview (the 8 movements, shown once) + 4-week progress grid
 ```
 
-No `renderMeasurements()` / no `renderRest()` — this app has neither body-measurement tracking nor inter-exercise rest periods (Qigong flows continuously; there's nothing to recover from between movements the way there is between strength sets).
+No `renderMeasurements()` / no `renderRest()` / no `renderMeditation()` — this app has no body-measurement tracking, no inter-exercise rest periods, and no separate breathing-meditation screen (see "Relationship to `cwinter1/workout`" above for why the meditation screen was removed).
 
 ---
 
@@ -101,19 +101,24 @@ let state = {
 
 ## Program Data
 
-`PROGRAM.days[0/1/2]` — 3 day archetypes, each repeated across 4 weeks:
+`BADUANJIN_PHASES` — the 8 traditional pieces, each its own phase (`b1`..`b8`), each phase containing exactly one exercise (the movement itself):
 
-| Index | Tag | Title | Kicker |
-|-------|-----|-------|--------|
-| 0 | ROOT | Root · Grounding Practice | Find the ground before you move |
-| 1 | FLOW | Flow · Moving Qi | Continuous, wave-like movement |
-| 2 | STILL | Still · Breath & Release | Slow down until it's just breath |
+| # | Phase name | Movement | Benefit (traditional framing) |
+|---|------------|----------|--------------------------------|
+| 1 | First | Two Hands Hold Up the Heavens | Regulates the Triple Burner; lengthens the spine |
+| 2 | Second | Drawing the Bow to Shoot the Hawk | Opens the chest; strengthens arms/shoulders/lungs |
+| 3 | Third | Separate Heaven and Earth | Regulates the spleen and stomach |
+| 4 | Fourth | The Wise Owl Gazes Backward | Relieves general strain and fatigue |
+| 5 | Fifth | Sway the Head and Shake the Tail | Clears heat/tension from chest and head |
+| 6 | Sixth | Two Hands Hold the Feet | Strengthens the kidneys and low back |
+| 7 | Seventh | Clench the Fists and Glare Fiercely | Builds strength and qi |
+| 8 | Eighth | Bouncing on Toes and Heels | Shakes the body loose; closes the set |
 
-Each day has `phases` (`settle` → `open` → `flow` → `release` → `meditation`) → each phase has `exercises` → each exercise has `variants[0..3]` (one per week).
+`PROGRAM.days[0/1/2]` are **identical** — all three point at `BADUANJIN_PHASES` with the same title/kicker/tag (`BADUANJIN`). This is deliberate: Baduanjin is one complete set practiced the same way each time, not three varying routines. Progression across the 4 weeks is via `variants[0..3]` on each movement (more reps / deeper stance), not different content per day. `renderProgram()` reflects this — it shows the 8-movement breakdown once, not three times, then the shared 4-week × 3-day progress grid (`renderProgressGrid()`, same component used on the home screen).
 
-`SESSION_MIN = 20`. `PROGRAM.phaseShare` gives each non-meditation phase as a fraction of `SESSION_MIN` (settle 2/20, open 3/20, flow 9/20, release 3/20 — sums to 17/20); meditation is hardcoded to 180s regardless of total, same pattern as the workout app. `phaseSeconds(totalMin)` / `buildTimeline(dayIdx, week, totalMin)` mirror the workout app's functions, minus the `rest`-item insertion (Qigong's `flow` phase has no inter-exercise rests).
+`SESSION_MIN = 20`. `PROGRAM.phaseShare` splits the session evenly across the 8 phases (`1/8` each = 150s ≈ 2:30 per movement). `phaseSeconds(totalMin)` computes this generically from whatever keys exist in `phaseShare` (no hardcoded phase names) and `buildTimeline(dayIdx, week, totalMin)` builds one timeline item per phase — no special-cased meditation branch, no `rest`-item insertion.
 
-The `meditation` phase always contains a single shared exercise, **Dantian Breath**, reused across all three day types (same as the workout app reuses "Box Breath"). Its 4-number variant string (`'4·4·4·4'` → `'6·6·6·6'`) drives `getMedState()` exactly like the original box-breathing implementation — inhale/hold/exhale/hold, unchanged math.
+Phase `name` fields are short ordinals ("First".."Eighth") — that's what shows in the compact phase-bar strip at the top of preview/session screens (truncated to one word) and in the "Session breakdown" list on the home screen. The full traditional movement title lives on the exercise's `name` field and is what displays large on the preview/session screens.
 
 ---
 
@@ -122,8 +127,9 @@ The `meditation` phase always contains a single shared exercise, **Dantian Breat
 | Constant | Description |
 |----------|-------------|
 | `T` | Palette + font refs, identical to B·Restore |
-| `PROGRAM` | Full 3-day × 4-week program data |
-| `EX_INFO` | ~43 movements → `{ desc }`, a 1–2 sentence plain-language cue. No `gif`/video field. |
+| `BADUANJIN_PHASES` | The 8 phases/movements, shared by all 3 `PROGRAM.days` entries |
+| `PROGRAM` | 3 identical day entries (see Program Data above) × 4-week variants |
+| `EX_INFO` | The 8 movements → `{ desc }`, a plain-language how-to cue. No `gif`/video field. |
 | `HOME_PHRASES` | 10 home-screen quotes, Qigong-flavored |
 | `SESSION_MIN` | `20` |
 
@@ -135,7 +141,7 @@ The `meditation` phase always contains a single shared exercise, **Dantian Breat
 
 Session lifecycle (`startSession`, `pickDay`, `startTimer`, `updateTimerDisplay`, `skipExercise`, `abortSession`, `finishSession`) mirrors the workout app's implementation as closely as the domain allows — same wake-lock/no-sleep-video handling, same beep/vibrate on transition, same 3-2-1 countdown before a timer starts.
 
-`getStreak()` and `pickMessage(streak, week, dayTag, total)` are ported with Qigong-specific copy (see source for the full message pool — milestones, week+tag combos, general rotation).
+`getStreak()` and `pickMessage(streak, week, dayTag, total)` are ported with Qigong-specific copy (see source for the full message pool — milestones, week+tag combos, general rotation). Since `dayTag` is always `'BADUANJIN'` now, the week+tag combo dict only needs 4 entries (`1-BADUANJIN`..`4-BADUANJIN`), not 12.
 
 `shareSession(streak, total, duration)` is a deliberately simple replacement for the workout app's Canvas share-card: it builds a one-line text summary and uses `navigator.share` (falling back to clipboard). No Canvas, no image generation — kept lightweight since it wasn't a specifically requested feature.
 

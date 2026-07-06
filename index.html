@@ -78,156 +78,65 @@ function iconClose(c) { return `<svg width="14" height="14" viewBox="0 0 14 14" 
 function iconArrow(c) { return `<svg width="16" height="16" viewBox="0 0 16 16" stroke="${c}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,4 10,8 6,12"/></svg>`; }
 
 // ═══════════════════════════════════════════════════════
-// PROGRAM DATA — general flowing qigong + breathwork, 4 weeks × 3 day types
+// PROGRAM DATA — Baduanjin (Eight Pieces of Brocade), the standardized
+// traditional 8-movement qigong set. Same 8 movements every session — that's
+// the nature of this set; progression across the 4 weeks is reps/hold time,
+// not different content per day.
 // ═══════════════════════════════════════════════════════
+const BADUANJIN_PHASES = [
+  { id:'b1', name:'First', intent:'Regulates the Triple Burner. Lengthens the whole spine.', exercises:[
+    { name:'Two Hands Hold Up the Heavens', variants:['6 reps','8 reps','10 reps','12 reps'] },
+  ]},
+  { id:'b2', name:'Second', intent:'Opens the chest. Strengthens the arms, shoulders, and lungs.', exercises:[
+    { name:'Drawing the Bow to Shoot the Hawk', variants:['4 each side','5 each side','6 each side','8 each side'] },
+  ]},
+  { id:'b3', name:'Third', intent:'Regulates the spleen and stomach.', exercises:[
+    { name:'Separate Heaven and Earth', variants:['4 each side','6 each side','8 each side','10 each side'] },
+  ]},
+  { id:'b4', name:'Fourth', intent:'Old language for relieving general strain and fatigue.', exercises:[
+    { name:'The Wise Owl Gazes Backward', variants:['3 each side','4 each side','5 each side','6 each side'] },
+  ]},
+  { id:'b5', name:'Fifth', intent:'Clears heat and tension held in the chest and head.', exercises:[
+    { name:'Sway the Head and Shake the Tail', variants:['4 each side','5 each side','6 each side','8 each side'] },
+  ]},
+  { id:'b6', name:'Sixth', intent:'Strengthens the kidneys and low back.', exercises:[
+    { name:'Two Hands Hold the Feet', variants:['4 reps','6 reps','8 reps','10 reps'] },
+  ]},
+  { id:'b7', name:'Seventh', intent:'Builds strength and qi through focused intent.', exercises:[
+    { name:'Clench the Fists and Glare Fiercely', variants:['4 each side','6 each side','8 each side','10 each side'] },
+  ]},
+  { id:'b8', name:'Eighth', intent:'Shakes the whole body loose. Traditionally said to prevent a hundred illnesses.', exercises:[
+    { name:'Bouncing on Toes and Heels', variants:['6 reps','8 reps','10 reps','12 reps'] },
+  ]},
+];
+
 const PROGRAM = {
   weeks: 4,
   daysPerWeek: 3,
-  // fractions of SESSION_MIN. meditation is fixed at 180s regardless of total.
-  phaseShare: { settle: 2/20, open: 3/20, flow: 9/20, release: 3/20 },
+  // fractions of SESSION_MIN — split evenly across the 8 pieces.
+  phaseShare: { b1:1/8, b2:1/8, b3:1/8, b4:1/8, b5:1/8, b6:1/8, b7:1/8, b8:1/8 },
   days: [
-    {
-      id: 'd1', title: 'Root · Grounding Practice', kicker: 'Find the ground before you move', tag: 'ROOT',
-      phases: [
-        { id:'settle', name:'Ground', intent:'Arrive. Feel your feet before you feel anything else.', exercises:[
-          { name:'Wu Chi Stance',  variants:['60 sec','90 sec','90 sec · eyes closed','120 sec · eyes closed'] },
-          { name:'Rooting Sway',   variants:['10 sways · slow','12 sways','15 sways · deeper knee bend','15 sways · eyes closed'] },
-          { name:'Spine Wave',     variants:['8 waves','10 waves','12 waves · slower','12 waves · full breath each'] },
-        ]},
-        { id:'open', name:'Awaken', intent:'Loosen every joint from the ground up.', exercises:[
-          { name:'Ankle & Knee Circles',        variants:['6 each way each side','8 each way','10 each way','10 each way · eyes closed'] },
-          { name:'Hip Circles',                  variants:['6 each direction','8 each direction','10 each direction','10 each · larger radius'] },
-          { name:'Shoulder Rolls & Arm Swings',  variants:['8 rolls + 8 swings','10 + 10','12 + 12','12 + 12 · full arm circles'] },
-        ]},
-        { id:'flow', name:'Root & Rise', intent:'Feel the ground, then let it lift you.', exercises:[
-          { name:'Holding the Ball',                 variants:['45 sec','60 sec','75 sec','90 sec · lower stance'] },
-          { name:"Push the Earth, Lift the Sky",     variants:['6 each side','8 each side','10 each side','10 each side · pause at top'] },
-          { name:'Bear Walks the Root',               variants:['8 shifts each side','10 each side','12 each side','12 each side · deeper bend'] },
-          { name:'Gathering Qi to Dantian',           variants:['8 rounds','10 rounds','12 rounds','12 rounds · slower exhale'] },
-          { name:'Standing Squat & Rise',             variants:['6 reps · shallow','8 reps','8 reps · deeper','10 reps · deeper, slower'] },
-        ]},
-        { id:'release', name:'Settle', intent:'Let what you built come back down.', exercises:[
-          { name:'Shaking Out',            variants:['20 sec','30 sec','30 sec · add knees soft','40 sec'] },
-          { name:'Rubbing the Kidneys',    variants:['15 sec rub + 15 sec rest','20+20','20+30','30+30'] },
-          { name:'Standing Forward Release', variants:['30 sec','45 sec','60 sec','60 sec · sway gently'] },
-        ]},
-        { id:'meditation', name:'Stillness', intent:'Ground the breath. Three minutes of quiet.', exercises:[
-          { name:'Dantian Breath', variants:['4·4·4·4','4·4·4·4','5·5·5·5','6·6·6·6'] },
-        ]},
-      ],
-    },
-    {
-      id: 'd2', title: 'Flow · Moving Qi', kicker: 'Continuous, wave-like movement', tag: 'FLOW',
-      phases: [
-        { id:'settle', name:'Arrive', intent:'Let the breath lead before the body follows.', exercises:[
-          { name:'Natural Standing Breath', variants:['8 breaths','10 breaths','12 breaths','12 breaths · lengthen exhale'] },
-          { name:'Arm Float',                variants:['6 rounds','8 rounds','10 rounds','10 rounds · eyes closed'] },
-          { name:'Neck & Jaw Release',       variants:['5 each side','6 each side','8 each side','8 each side · slower'] },
-        ]},
-        { id:'open', name:'Warm the Channels', intent:'Small movement, full attention.', exercises:[
-          { name:'Wrist & Finger Circles', variants:['8 each way','10 each way','12 each way','12 each way · add elbow circles'] },
-          { name:'Waist Twists',            variants:['10 each side','12 each side','15 each side','15 each side · deeper twist'] },
-          { name:'Slow March Knee Lifts',   variants:['8 each side','10 each side','12 each side','12 each side · add arm swing'] },
-        ]},
-        { id:'flow', name:'Wave Through the Body', intent:'One continuous movement. Nothing sudden.', exercises:[
-          { name:'Cloud Hands',                variants:['8 each side','10 each side','12 each side','12 each side · lower stance'] },
-          { name:'Wave Hands Forward',          variants:['8 reps','10 reps','12 reps','12 reps · hold breath at full extension'] },
-          { name:'Turning the Millstone',       variants:['6 each direction','8 each direction','10 each direction','10 each direction · wider circle'] },
-          { name:'Crane Extends Its Wings',     variants:['6 rounds','8 rounds','10 rounds','10 rounds · pause at full extension'] },
-          { name:'Swimming Dragon',             variants:['6 each side','8 each side','10 each side','10 each side · slower tempo'] },
-        ]},
-        { id:'release', name:'Smooth the Water', intent:'Bring the wave to stillness.', exercises:[
-          { name:'Palms Press Down',    variants:['6 reps','8 reps','10 reps','10 reps · hold 3s at bottom'] },
-          { name:'Gentle Side Bend',    variants:['30 sec each side','40 sec each side','45 sec each side','60 sec each side'] },
-          { name:'Closing the Circle',  variants:['4 rounds','6 rounds','8 rounds','8 rounds · slower'] },
-        ]},
-        { id:'meditation', name:'Stillness', intent:'Let the wave settle into stillness.', exercises:[
-          { name:'Dantian Breath', variants:['4·4·4·4','4·4·4·4','5·5·5·5','6·6·6·6'] },
-        ]},
-      ],
-    },
-    {
-      id: 'd3', title: 'Still · Breath & Release', kicker: "Slow down until it's just breath", tag: 'STILL',
-      phases: [
-        { id:'settle', name:'Land', intent:'Nowhere else to be.', exercises:[
-          { name:'Standing Arrival',  variants:['60 sec','90 sec','90 sec · eyes closed','120 sec'] },
-          { name:'Three-Part Breath', variants:['6 breaths','8 breaths','10 breaths','10 breaths · slower'] },
-          { name:'Body Scan',         variants:['60 sec','90 sec','120 sec','120 sec · slower pace'] },
-        ]},
-        { id:'open', name:'Loosen', intent:'Just enough movement to let go of the rest.', exercises:[
-          { name:'Spinal Rolls',       variants:['6 reps','8 reps','10 reps','10 reps · pause at each end'] },
-          { name:'Shoulder Drops',     variants:['6 reps','8 reps','10 reps','10 reps · slower'] },
-          { name:'Gentle Head Turns',  variants:['5 each side','6 each side','8 each side','8 each side · add slight tilt'] },
-        ]},
-        { id:'flow', name:'Hold and Breathe', intent:'Stillness with the eyes open. Longer holds, quieter mind.', exercises:[
-          { name:'Embracing the Tree',        variants:['60 sec','90 sec','120 sec','120 sec · lower stance'] },
-          { name:'Golden Rooster Stands',      variants:['20 sec each side','30 sec each side','40 sec each side','45 sec each side'] },
-          { name:'Palms to Sky',               variants:['6 breaths held','8 breaths held','10 breaths held','10 breaths held · eyes closed'] },
-          { name:'Sinking Qi to Dantian',      variants:['6 rounds','8 rounds','10 rounds','10 rounds · slower exhale'] },
-          { name:'Standing Stillness',         variants:['60 sec','90 sec','120 sec','150 sec'] },
-        ]},
-        { id:'release', name:'Come Back', intent:'Softly, softly.', exercises:[
-          { name:'Soft Gaze Return',      variants:['20 sec','30 sec','30 sec','40 sec'] },
-          { name:'Self Embrace',           variants:['20 sec','30 sec','30 sec','40 sec'] },
-          { name:'Gentle Shake & Stretch', variants:['20 sec','30 sec','30 sec','40 sec'] },
-        ]},
-        { id:'meditation', name:'Stillness', intent:'Sit. Breathe. Arrive completely.', exercises:[
-          { name:'Dantian Breath', variants:['4·4·4·4','4·4·4·4','5·5·5·5','6·6·6·6'] },
-        ]},
-      ],
-    },
+    { id: 'd1', title: 'Eight Brocades · Baduanjin', kicker: 'The traditional eight-movement set', tag: 'BADUANJIN', phases: BADUANJIN_PHASES },
+    { id: 'd2', title: 'Eight Brocades · Baduanjin', kicker: 'The traditional eight-movement set', tag: 'BADUANJIN', phases: BADUANJIN_PHASES },
+    { id: 'd3', title: 'Eight Brocades · Baduanjin', kicker: 'The traditional eight-movement set', tag: 'BADUANJIN', phases: BADUANJIN_PHASES },
   ],
 };
 
 // ═══════════════════════════════════════════════════════
 // MOVEMENT DESCRIPTIONS — plain-language cues, no video tutorials
 // (no verified video IDs exist for this content, so guidance is text-only
-// rather than risk a broken or wrong embed during practice)
+// rather than risk a broken or wrong embed during practice — a "Watch on
+// YouTube" search link on the preview screen covers that instead)
 // ═══════════════════════════════════════════════════════
 const EX_INFO = {
-  'Wu Chi Stance': { desc: 'Stand with feet shoulder-width, knees soft, arms relaxed at your sides. Let your weight settle evenly into both feet before you do anything else.' },
-  'Rooting Sway': { desc: 'Shift your weight slowly from one foot to the other, feeling the ground push back with each shift. Keep the movement small and unhurried.' },
-  'Spine Wave': { desc: 'A small wave through the spine — tuck the tailbone under, then release it back to neutral. Let the movement start low and ripple upward.' },
-  'Ankle & Knee Circles': { desc: 'Standing on one leg, circle the free ankle and knee gently in both directions. Switch sides. Wakes the lower joints without any real load.' },
-  'Hip Circles': { desc: 'Hands on your hips, draw slow, wide circles with your pelvis. Keep the upper body relatively still — let the hips do the work.' },
-  'Shoulder Rolls & Arm Swings': { desc: 'Roll the shoulders back and down, then let the arms swing loosely like pendulums. Nothing tense, nothing held.' },
-  'Holding the Ball': { desc: 'Curve both arms in front of your belly as if holding a large, invisible ball. Shift your weight gently side to side while keeping the shape.' },
-  "Push the Earth, Lift the Sky": { desc: 'One hand presses down toward the ground, the other reaches up overhead, alternating slowly with your breath. Let the reach come from the spine, not just the arm.' },
-  'Bear Walks the Root': { desc: 'Rock your weight fully from one foot to the other, like a bear shifting its bulk. Let the knee bend deepen as you go.' },
-  'Gathering Qi to Dantian': { desc: 'Sweep both arms in from the sides in a wide arc, drawing your hands in toward your lower belly. Exhale as the hands arrive.' },
-  'Standing Squat & Rise': { desc: 'Bend the knees very slowly, spine staying long, then rise back up at the same unhurried pace. Sink into the earth, then return.' },
-  'Shaking Out': { desc: "Let the whole body shake loosely — knees, arms, shoulders, all of it. The goal is looseness, not effort." },
-  'Rubbing the Kidneys': { desc: "Rub the lower back briskly with both hands until it's warm, then rest the warm hands there for a moment." },
-  'Standing Forward Release': { desc: 'Hinge slowly forward from the hips, letting the arms and head hang heavy. Knees stay soft the whole time.' },
-  'Natural Standing Breath': { desc: "Stand relaxed and simply notice your breath as it already is. Don't change it yet — just watch it." },
-  'Arm Float': { desc: 'Let the arms float upward on the inhale and sink back down on the exhale. Nothing else in the body moves.' },
-  'Neck & Jaw Release': { desc: 'Slowly turn the head side to side, letting the jaw soften and drop with each turn. Let go of anything you’re holding in the face.' },
-  'Wrist & Finger Circles': { desc: 'Circle the wrists, then open and close the fingers slowly. These are the qi gates — worth waking up properly.' },
-  'Waist Twists': { desc: 'Let the torso rotate gently side to side, arms loose enough to swing with the motion. Let the waist lead, not the shoulders.' },
-  'Slow March Knee Lifts': { desc: 'Lift one knee at a time at an unhurried pace, breathing fully with each lift. Keep the standing leg soft, not locked.' },
-  'Cloud Hands': { desc: 'Shift your weight side to side while both hands circle in front of the body, passing each other like clouds. Keep the motion continuous — no pauses between sides.' },
-  'Wave Hands Forward': { desc: 'Let the hands ripple forward and back like a wave moving through water, weight shifting from back foot to front foot and back.' },
-  'Turning the Millstone': { desc: 'Circle both arms horizontally around your center, as if turning a large millstone. Let the waist initiate the circle, arms follow.' },
-  'Crane Extends Its Wings': { desc: 'Slowly open both arms wide, like a crane unfolding its wings, then gather them back in toward the chest. Full range, no rush.' },
-  'Swimming Dragon': { desc: 'A continuous side-to-side undulation moving through the spine and out through the arms, like a dragon swimming through water.' },
-  'Palms Press Down': { desc: 'Press both palms slowly toward the floor, exhaling fully with each press. Let the shoulders stay down and relaxed throughout.' },
-  'Gentle Side Bend': { desc: "Reach one arm overhead and let the body bend softly to that side. Breathe into the stretch along your ribs, don't force the range." },
-  'Closing the Circle': { desc: 'Draw a slow, wide circle in front of the body with both arms, ending with your hands resting on your belly. This closes the sequence.' },
-  'Standing Arrival': { desc: 'Stand or sit with a tall spine and simply notice the body as it is right now — nothing to fix, nothing to change yet.' },
-  'Three-Part Breath': { desc: 'Breathe first into the belly, then the ribs, then the chest, as one smooth continuous wave. Exhale in the same order, reversed.' },
-  'Body Scan': { desc: 'Move your attention slowly from your feet up to the crown of your head, releasing any tension you notice along the way.' },
-  'Spinal Rolls': { desc: 'Slowly round the spine forward, then lengthen it back to neutral, one vertebra at a time where you can feel it.' },
-  'Shoulder Drops': { desc: 'Lift both shoulders up toward the ears, hold briefly, then let them drop completely on the exhale. Repeat until they stop wanting to creep back up.' },
-  'Gentle Head Turns': { desc: 'Turn the head slowly from side to side, letting the eyes lead the movement. Keep the neck long, not compressed.' },
-  'Embracing the Tree': { desc: 'Curve both arms in front of you as if wrapping around a wide tree trunk. Hold the shape and simply breathe — this is a stillness posture, not a stretch.' },
-  'Golden Rooster Stands': { desc: 'Balance on one leg with the opposite knee lifted and arms loose. Find one fixed point to look at and let the balance settle around it.' },
-  'Palms to Sky': { desc: 'Slowly raise both arms overhead, palms turning to face the sky. Hold at the top and keep breathing rather than rushing back down.' },
-  'Sinking Qi to Dantian': { desc: 'Let both hands slowly lower from the chest down to the belly, guiding the breath down with them as they descend.' },
-  'Standing Stillness': { desc: 'No movement at all — just stand and breathe, letting the mind settle the way water settles when you stop stirring it.' },
-  'Soft Gaze Return': { desc: 'Let the eyes open slowly with a soft, unfocused gaze, gradually bringing awareness back to the room around you.' },
-  'Self Embrace': { desc: 'Wrap both arms gently around yourself and pause there for a moment before the practice ends.' },
-  'Gentle Shake & Stretch': { desc: 'A small full-body shake, then a light stretch upward, signaling to the body that the practice is complete.' },
-  'Dantian Breath': { desc: 'Inhale for the count, hold, exhale for the count, hold — a slow four-part breath centered on the lower belly. This settles the nervous system more than almost anything else in the practice.' },
+  'Two Hands Hold Up the Heavens': { desc: 'Stand with feet shoulder-width, interlace your fingers and turn the palms up in front of the belly. Inhale as you press the palms overhead, straightening through the whole spine. Exhale as you separate the hands and lower them back down. Start from a relaxed, upright stance before the first rep.' },
+  'Drawing the Bow to Shoot the Hawk': { desc: 'From a horse stance, cross the arms in front of the chest. Extend one arm out to the side as if drawing a bow, while the other hand pulls back like gripping the bowstring. Exhale fully on each draw, then alternate sides.' },
+  'Separate Heaven and Earth': { desc: 'Standing tall, raise one arm overhead with the palm pressing up, while the other hand presses down toward the floor at your side. Feel the spine lengthen between the two presses, then switch sides.' },
+  'The Wise Owl Gazes Backward': { desc: 'Stand relaxed with arms at your sides. Slowly turn your head to look behind you over one shoulder, keeping the hips facing forward. Return to center and repeat to the other side.' },
+  'Sway the Head and Shake the Tail': { desc: 'From a low horse stance, lean the torso forward slightly and circle the head and upper body in a wide arc to one side, as if shaking out heat through the tailbone. Alternate sides slowly.' },
+  'Two Hands Hold the Feet': { desc: 'Bend forward from the hips and reach both hands toward your feet, knees soft. Then reverse the motion, sliding the hands up the back of the legs and spine to standing, arching gently backward at the top.' },
+  'Clench the Fists and Glare Fiercely': { desc: 'From a horse stance, clench both fists at your hips. Punch one fist forward with a firm exhale and a focused gaze, then draw it back and repeat with the other side.' },
+  'Bouncing on Toes and Heels': { desc: 'Rise up onto the balls of your feet, then drop your heels to the ground with a light, springy bounce. Let it travel gently up through the whole body. Finish the last rep by standing quietly for a few breaths.' },
 };
 
 function getExInfo(name) {
@@ -253,13 +162,9 @@ const HOME_PHRASES = [
 
 function phaseSeconds(totalMin) {
   const s = PROGRAM.phaseShare, total = totalMin * 60;
-  return {
-    settle:  Math.round(total * s.settle),
-    open:    Math.round(total * s.open),
-    flow:    Math.round(total * s.flow),
-    release: Math.round(total * s.release),
-    meditation: 180,
-  };
+  const out = {};
+  Object.keys(s).forEach(id => { out[id] = Math.round(total * s[id]); });
+  return out;
 }
 
 function buildTimeline(dayIdx, week, totalMin) {
@@ -267,12 +172,6 @@ function buildTimeline(dayIdx, week, totalMin) {
   const totals = phaseSeconds(totalMin);
   const out = [];
   day.phases.forEach((ph, pi) => {
-    if (ph.id === 'meditation') {
-      out.push({ phaseIdx:pi, phaseId:ph.id, phaseName:ph.name, intent:ph.intent,
-        exIdx:0, exName:ph.exercises[0].name, variant:ph.exercises[0].variants[week-1],
-        seconds:totals.meditation, kind:'meditation' });
-      return;
-    }
     const each = Math.max(20, Math.round(totals[ph.id] / ph.exercises.length));
     ph.exercises.forEach((ex, ei) => {
       out.push({ phaseIdx:pi, phaseId:ph.id, phaseName:ph.name, intent:ph.intent,
@@ -341,7 +240,7 @@ function releaseWakeLock() {
   try { if (_noSleepVideo) _noSleepVideo.pause(); } catch {}
 }
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && (state.view === 'session' || state.view === 'meditation')) acquireWakeLock();
+  if (document.visibilityState === 'visible' && state.view === 'session') acquireWakeLock();
 });
 function getAudioCtx() {
   if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -390,24 +289,16 @@ function pickMessage(streak, week, dayTag, total) {
 
   const combo = `${week}-${dayTag}`;
   const comboMessages = {
-    '1-ROOT':  "Week one, rooting practice. Finding the ground is the whole lesson.",
-    '1-FLOW':  "First flow session behind you. Nothing to master yet — just to notice.",
-    '1-STILL': "Stillness on day three. That one asks the most and gives the least applause.",
-    '2-ROOT':  "Second week, rooting again. The stance is starting to feel less foreign.",
-    '2-FLOW':  "Week two flow. The movement is smoother than you think it is.",
-    '2-STILL': "Stillness, week two. The mind wanders less than it did seven days ago.",
-    '3-ROOT':  "Three weeks of rooting. You don't have to think about your feet anymore.",
-    '3-FLOW':  "Week three flow. The wave moves through you now, not just past you.",
-    '3-STILL': "Stillness, week three. This is where it stops feeling like waiting.",
-    '4-ROOT':  "Final rooting session. Four weeks of finding the ground.",
-    '4-FLOW':  "Last flow session of the program. The movement is just yours now.",
-    '4-STILL': "Last stillness session. You built a quiet place you can return to.",
+    '1-BADUANJIN': "Week one of the eight pieces. The order is the whole point — trust it before you rush it.",
+    '2-BADUANJIN': "Second week through the set. The sequence should start to feel like one motion now, not eight separate ones.",
+    '3-BADUANJIN': "Third week. The holds go deeper because you're not thinking about what comes next anymore.",
+    '4-BADUANJIN': "Final week of the program. Eight movements, twelve sessions, the same set the whole way through.",
   };
   if (comboMessages[combo]) return comboMessages[combo];
 
   const pool = [
     "Qigong doesn't ask for effort. It asks for attention.",
-    "The stillness session is the one most people skip first. It's also the one that does the most.",
+    "Eight pieces, same order, every time. The repetition is the point, not a limitation.",
     "You don't build calm in the practice. You build it in how it stays with you after.",
     "Twenty minutes of this is worth more than an hour you only do twice a month.",
     "The body settles into what you consistently ask of it. You're asking.",
@@ -418,7 +309,7 @@ function pickMessage(streak, week, dayTag, total) {
     `${total} sessions. You keep arriving.`,
     "Another one in the books. It adds up whether you feel it today or not.",
     "Not every session feels settled. This one counts the same.",
-    "The gap between wanting stillness and taking it is exactly this — twenty minutes, this morning.",
+    "The gap between wanting to and doing it is exactly this — twenty minutes, this morning.",
     "One more session behind you. That's the whole practice.",
   ];
   return pool[total % pool.length];
@@ -535,7 +426,7 @@ function renderPhaseChips(day) {
   wrap.appendChild(sectionHeader('Session breakdown'));
   const list = el('div', `margin-top:10px;display:flex;flex-direction:column;gap:4px;`);
   day.phases.forEach((ph, i) => {
-    const mins = ph.id === 'meditation' ? 3 : Math.round(totals[ph.id] / 60);
+    const mins = Math.round(totals[ph.id] / 60);
     const pct = Math.min(100, (mins / SESSION_MIN) * 100);
     const row = el('div', `display:flex;align-items:center;gap:8px;`);
     const num = el('span', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};width:18px;letter-spacing:1px;`);
@@ -636,45 +527,12 @@ function updateTimerDisplay() {
   const numEl = document.getElementById('timer-num');
   if (numEl) numEl.textContent = fmt(state.left);
 
-  const medCountdown = document.getElementById('med-countdown');
-  if (medCountdown) {
-    medCountdown.textContent = fmt(state.left);
-    const { label, scale, phaseDur, withinPhase } = getMedState();
-    const boxEl = document.getElementById('med-box');
-    const labelEl = document.getElementById('med-label');
-    const countEl = document.getElementById('med-count');
-    if (boxEl) boxEl.style.transform = `scale(${scale})`;
-    if (labelEl) labelEl.textContent = label;
-    if (countEl) countEl.textContent = Math.max(0, phaseDur - withinPhase);
-  }
-
   const progEl = document.getElementById('session-prog');
   if (progEl) {
     const totalSec = state.timeline.reduce((a, t) => a + t.seconds, 0);
     const doneSec = state.timeline.slice(0, state.idx).reduce((a, t) => a + t.seconds, 0) + (cur.seconds - state.left);
     progEl.style.width = `${(doneSec / totalSec) * 100}%`;
   }
-}
-
-function getMedState() {
-  const cur = state.timeline[state.idx];
-  const m = cur.variant.match(/(\d+)/g);
-  const phases = m ? m.slice(0, 4).map(Number) : [4, 4, 4, 4];
-  const cycleSec = phases.reduce((a, b) => a + b, 0);
-  const elapsed = cur.seconds - state.left;
-  const inCycle = elapsed % cycleSec;
-  const phaseLabels = ['Inhale', 'Hold', 'Exhale', 'Hold'];
-  let phaseIdx = 0, accum = 0, withinPhase = 0;
-  for (let i = 0; i < 4; i++) {
-    if (inCycle < accum + phases[i]) { phaseIdx = i; withinPhase = inCycle - accum; break; }
-    accum += phases[i];
-  }
-  const phaseDur = phases[phaseIdx];
-  let scale = 0.55;
-  if (phaseIdx === 0) scale = 0.55 + 0.45 * (withinPhase / phaseDur);
-  else if (phaseIdx === 1) scale = 1;
-  else if (phaseIdx === 2) scale = 1 - 0.45 * (withinPhase / phaseDur);
-  return { phases, phaseIdx, withinPhase, phaseDur, label: phaseLabels[phaseIdx], scale };
 }
 
 // ═══════════════════════════════════════════════════════
@@ -741,7 +599,7 @@ function renderPreview(root) {
 
   const intentBox = el('div', `display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:${T.pill};border-radius:6px;`);
   const intentIcon = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.accent};flex-shrink:0;margin-top:2px;letter-spacing:1px;`);
-  intentIcon.textContent = cur.kind === 'meditation' ? 'MED' : 'TIP';
+  intentIcon.textContent = 'TIP';
   const intentText = el('div', `font-size:13px;color:${T.sub};line-height:1.5;`);
   intentText.textContent = cur.intent;
   intentBox.append(intentIcon, intentText);
@@ -784,8 +642,6 @@ function renderSession(root) {
   const day_ = PROGRAM.days[state.day];
   const totalSec = state.timeline.reduce((a, t) => a + t.seconds, 0);
   const doneSec = state.timeline.slice(0, state.idx).reduce((a, t) => a + t.seconds, 0);
-
-  if (cur.kind === 'meditation') { renderMeditation(root); return; }
 
   const hdr = el('div', `padding:calc(env(safe-area-inset-top,12px) + 12px) 22px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;`);
   const closeBtn = el('button', `appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.fg};width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;`);
@@ -846,48 +702,6 @@ function renderSession(root) {
   body.append(phaseTag, exTitle, variant, timerCard, progWrap);
 
   root.append(hdr, phaseBars, body, renderControls());
-}
-
-// ═══════════════════════════════════════════════════════
-// MEDITATION
-// ═══════════════════════════════════════════════════════
-function renderMeditation(root) {
-  const cur = state.timeline[state.idx];
-  const { label, scale, phaseDur, withinPhase } = getMedState();
-
-  const hdr = el('div', `padding:calc(env(safe-area-inset-top,12px)+12px) 22px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;`);
-  const closeBtn = el('button', `appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.fg};width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;`);
-  closeBtn.innerHTML = iconClose(T.fg);
-  closeBtn.onclick = abortSession;
-  const hdrMid = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};letter-spacing:2px;text-transform:uppercase;`);
-  hdrMid.textContent = `Stillness · ${cur.variant}`;
-  hdr.append(closeBtn, hdrMid, el('div', `width:36px;`));
-
-  const body = el('div', `flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;gap:32px;`);
-
-  const boxWrap = el('div', `position:relative;width:260px;height:260px;display:flex;align-items:center;justify-content:center;`);
-  const outerRing = el('div', `position:absolute;inset:0;border-radius:8px;border:1px solid ${T.hairline};`);
-  const breathBox = el('div', `width:220px;height:220px;border-radius:8px;background:${T.accent}22;border:1.5px solid ${T.accent};transform:scale(${scale});transition:transform 1s linear;display:flex;align-items:center;justify-content:center;flex-direction:column;`);
-  breathBox.id = 'med-box';
-  const breathLabel = el('div', `font-family:${T.display};font-size:28px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:${T.fg};`);
-  breathLabel.id = 'med-label';
-  breathLabel.textContent = label;
-  const breathCount = el('div', `font-family:${T.mono_ff};font-size:36px;font-weight:500;color:${T.accent};margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-1px;`);
-  breathCount.id = 'med-count';
-  breathCount.textContent = Math.max(0, phaseDur - withinPhase);
-  breathBox.append(breathLabel, breathCount);
-  boxWrap.append(outerRing, breathBox);
-
-  const timeRemain = el('div', `text-align:center;`);
-  const timeLbl = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};letter-spacing:2px;text-transform:uppercase;`);
-  timeLbl.textContent = 'Time remaining';
-  const timeNum = el('div', `font-family:${T.mono_ff};font-size:32px;font-weight:500;color:${T.fg};margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-1px;`);
-  timeNum.id = 'med-countdown';
-  timeNum.textContent = fmt(state.left);
-  timeRemain.append(timeLbl, timeNum);
-
-  body.append(boxWrap, timeRemain);
-  root.append(hdr, body, renderControls());
 }
 
 function renderControls() {
@@ -1066,55 +880,46 @@ function renderProgram(root) {
   const scroll = el('div', `flex:1;overflow-y:auto;padding:0 22px;`);
   const body = el('div', `display:flex;flex-direction:column;gap:28px;padding-bottom:40px;margin-top:8px;`);
 
-  PROGRAM.days.forEach((day, di) => {
-    const daySection = el('div', ``);
-    const dayHdr = el('div', `margin-bottom:14px;`);
-    const dayTag = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
-    dayTag.textContent = `Day ${di + 1} · ${day.tag}`;
-    const dayTitle = el('div', `font-family:${T.display};font-weight:700;font-size:28px;text-transform:uppercase;letter-spacing:-0.5px;line-height:1;margin-top:4px;`);
-    dayTitle.textContent = day.title;
-    const daySub = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};margin-top:4px;letter-spacing:1px;`);
-    daySub.textContent = day.kicker;
-    dayHdr.append(dayTag, dayTitle, daySub);
+  // All 3 weekly sessions are the same Baduanjin set, so the breakdown is
+  // shown once rather than repeated identically per day slot.
+  const day = PROGRAM.days[0];
+  const daySection = el('div', ``);
+  const dayHdr = el('div', `margin-bottom:14px;`);
+  const dayTag = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
+  dayTag.textContent = `${day.tag} · Practiced 3× a week`;
+  const dayTitle = el('div', `font-family:${T.display};font-weight:700;font-size:28px;text-transform:uppercase;letter-spacing:-0.5px;line-height:1;margin-top:4px;`);
+  dayTitle.textContent = day.title;
+  const daySub = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};margin-top:4px;letter-spacing:1px;`);
+  daySub.textContent = day.kicker;
+  dayHdr.append(dayTag, dayTitle, daySub);
 
-    const phaseList = el('div', `display:flex;flex-direction:column;gap:6px;`);
-    day.phases.forEach(ph => {
-      const phCard = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:6px;padding:14px;`);
-      const phHdr = el('div', `display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;`);
-      const phName = el('div', `font-family:${T.display};font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;`);
-      phName.textContent = ph.name;
-      const phIntent = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:0.5px;max-width:200px;text-align:right;`);
-      phIntent.textContent = ph.intent;
-      phHdr.append(phName, phIntent);
+  const phaseList = el('div', `display:flex;flex-direction:column;gap:6px;`);
+  day.phases.forEach((ph, pi) => {
+    const phCard = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:6px;padding:14px;`);
+    const phHdr = el('div', `display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;`);
+    const phName = el('div', `font-family:${T.display};font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;`);
+    phName.textContent = `${pi + 1}. ${ph.name}`;
+    const phIntent = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:0.5px;max-width:200px;text-align:right;`);
+    phIntent.textContent = ph.intent;
+    phHdr.append(phName, phIntent);
 
-      const exList = el('div', `display:flex;flex-direction:column;gap:4px;`);
-      ph.exercises.forEach((ex, ei) => {
-        const row = el('div', `display:flex;align-items:baseline;gap:8px;`);
-        const num = el('span', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};letter-spacing:1px;flex-shrink:0;`);
-        num.textContent = `${ei+1}.`;
-        const name = el('span', `font-size:13px;color:${T.fg};`);
-        name.textContent = ex.name;
-        const week1 = el('span', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};margin-left:auto;flex-shrink:0;`);
-        week1.textContent = `W1: ${ex.variants[0]}`;
-        row.append(num, name, week1);
-        exList.appendChild(row);
-      });
-      phCard.append(phHdr, exList);
-      phaseList.appendChild(phCard);
+    const exList = el('div', `display:flex;flex-direction:column;gap:4px;`);
+    ph.exercises.forEach(ex => {
+      const row = el('div', `display:flex;align-items:baseline;gap:8px;`);
+      const name = el('span', `font-size:13px;color:${T.fg};`);
+      name.textContent = ex.name;
+      const week1 = el('span', `font-family:${T.mono_ff};font-size:11px;color:${T.mono};margin-left:auto;flex-shrink:0;`);
+      week1.textContent = `W1: ${ex.variants[0]}`;
+      row.append(name, week1);
+      exList.appendChild(row);
     });
-
-    const weekProg = el('div', `margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;`);
-    [1,2,3,4].forEach(w => {
-      const done = !!state.progress[`w${w}d${di}`];
-      const btn = el('button', `border:none;background:${done ? T.accent : T.pill};color:${done ? T.accentT : T.mono};border-radius:4px;padding:10px 6px;font-family:${T.mono_ff};font-size:10px;letter-spacing:1px;text-transform:uppercase;`);
-      btn.textContent = done ? `W${w} ✓` : `W${w}`;
-      btn.onclick = () => pickDay(w, di);
-      weekProg.appendChild(btn);
-    });
-
-    daySection.append(dayHdr, phaseList, weekProg);
-    body.appendChild(daySection);
+    phCard.append(phHdr, exList);
+    phaseList.appendChild(phCard);
   });
+
+  daySection.append(dayHdr, phaseList);
+  body.appendChild(daySection);
+  body.appendChild(renderProgressGrid());
 
   scroll.appendChild(body);
   root.append(hdr, scroll);
