@@ -6,6 +6,8 @@
 
 The app is a 4-week program: 20 minutes, 3 mornings a week. The app title is in Hebrew: **Q·Flow · כריס** (כריס = Chris). Layout is `lang="he" dir="rtl"`, and — unlike the workout app, which keeps English body copy inside its RTL shell — **all in-app text and the voice readout are in Hebrew** (see "Localization" below). Same audience and constraints as B·Restore: iOS Safari, one person, Israel.
 
+**Live URL**: https://cwinter1.github.io/workflow-Qigong/ (GitHub Pages, deploys from `main`).
+
 **Design system**: intentionally identical to B·Restore Dark — same palette, same four fonts, same `el()`-based render architecture, same RTL/Hebrew shell. See `T` object below; do not deviate from it.
 
 **Tone**: dry delivery, genuine warmth, no hype — same voice as B·Restore, adapted for a breath practice rather than a training log.
