@@ -141,7 +141,7 @@ Phase `name` fields are short ordinals ("First".."Eighth") — that's what shows
 
 ### Voice readout
 
-`speakText(text)` uses the browser's built-in `speechSynthesis` API (no external service, works offline once the page is loaded, native to iOS Safari) to read a movement's `desc` aloud. Wired to a small speaker-icon button (`iconSpeaker`) next to the "How to do it" header on the preview screen — tap it, it cancels any in-flight utterance and speaks `${exName}. ${desc}`. `utter.lang = 'he-IL'` is set explicitly so iOS picks a Hebrew voice rather than defaulting to whatever the system locale implies.
+`toggleSpeech(text, btn)` uses the browser's built-in `speechSynthesis` API (no external service, works offline once the page is loaded, native to iOS Safari) to read a movement's `desc` aloud. Wired to a small speaker-icon button (`iconSpeaker`/`iconStop`) next to the "How to do it" header on the preview screen. It's a **toggle, not a fire-and-forget call** — tapping it while it's already reading stops playback immediately (swapping to `iconStop` while active) rather than restarting or running to completion regardless of further taps. `_speakingBtn` (module-level) tracks which button is currently speaking; `render()` also calls `speechSynthesis.cancel()` on every screen transition so navigating away (e.g. starting the timer) always stops it too. `utter.lang = 'he-IL'` is set explicitly so iOS picks a Hebrew voice rather than defaulting to whatever the system locale implies.
 
 ### Localization
 
