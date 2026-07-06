@@ -76,6 +76,21 @@ function iconNext(c)  { return `<svg width="14" height="14" viewBox="0 0 14 14" 
 function iconCheck(c) { return `<svg width="16" height="16" viewBox="0 0 16 16" stroke="${c}" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,8 6,12 14,4"/></svg>`; }
 function iconClose(c) { return `<svg width="14" height="14" viewBox="0 0 14 14" stroke="${c}" stroke-width="1.5" fill="none" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>`; }
 function iconArrow(c) { return `<svg width="16" height="16" viewBox="0 0 16 16" stroke="${c}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,4 10,8 6,12"/></svg>`; }
+function iconSpeaker(c) { return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19" fill="${c}" stroke="none"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>`; }
+
+function youtubeSearchUrl(name) {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(name + ' qigong')}`;
+}
+
+function speakText(text) {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 0.92;
+    window.speechSynthesis.speak(utter);
+  } catch {}
+}
 
 // ═══════════════════════════════════════════════════════
 // PROGRAM DATA — Baduanjin (Eight Pieces of Brocade), the standardized
@@ -631,16 +646,31 @@ function renderPreview(root) {
   chips.append(makeChip(`Week ${state.week}`, cur.variant), makeChip('Duration', fmt(cur.seconds)));
 
   // Built-in stick-figure diagram — no video, so no ads/intros/loading before
-  // a movement that repeats every single session.
+  // a movement that repeats every single session. A small YouTube fallback
+  // link sits underneath for whenever the diagram alone isn't enough.
   const illoBox = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:8px;padding:8px 16px;`);
-  if (info.illo) illoBox.innerHTML = info.illo();
+  if (info.illo) {
+    const illoWrap = el('div', ``);
+    illoWrap.innerHTML = info.illo();
+    const watchLink = el('a', `display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:${T.mono};font-family:${T.mono_ff};font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 0 4px;`);
+    watchLink.href = youtubeSearchUrl(cur.exName);
+    watchLink.target = '_blank';
+    watchLink.rel = 'noopener';
+    watchLink.innerHTML = `<span>Not clear? Watch on YouTube</span>`;
+    illoBox.append(illoWrap, watchLink);
+  }
 
   const descBox = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:6px;padding:16px;`);
-  const descTitle = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;`);
+  const descHdr = el('div', `display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;`);
+  const descTitle = el('div', `font-family:${T.mono_ff};font-size:10px;color:${T.accent};letter-spacing:2px;text-transform:uppercase;`);
   descTitle.textContent = 'How to do it';
+  const speakBtn = el('button', `appearance:none;border:1px solid ${T.hairline};background:transparent;color:${T.fg};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;`);
+  speakBtn.innerHTML = iconSpeaker(T.fg);
+  speakBtn.onclick = () => speakText(`${cur.exName}. ${info.desc}`);
+  descHdr.append(descTitle, speakBtn);
   const descText = el('div', `font-size:14px;color:${T.fg};line-height:1.65;`);
   descText.textContent = info.desc;
-  descBox.append(descTitle, descText);
+  descBox.append(descHdr, descText);
 
   const intentBox = el('div', `display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:${T.pill};border-radius:6px;`);
   const intentIcon = el('div', `font-family:${T.mono_ff};font-size:11px;color:${T.accent};flex-shrink:0;margin-top:2px;letter-spacing:1px;`);

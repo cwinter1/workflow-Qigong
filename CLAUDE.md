@@ -21,7 +21,7 @@ This is a **separate app**, not a mode inside the workout app. It intentionally 
 
 It intentionally does **not** carry over:
 - Garmin sleep/activity tracking, body measurements, progress photos, Canvas share cards, Google Sheets sync, or the `puter.ai` voice-coaching integration — none of those map onto a breathwork practice and weren't requested
-- Video of any kind — first tried a YouTube search link (`youtubeSearchUrl(name)`), but real-world use showed ads and intros add real friction to a practice built around the same 8 movements every session. Replaced with built-in stick-figure SVG diagrams instead (`EX_INFO[name].illo()`) — instant, offline, no ads.
+- Video as the *primary* movement reference — ads and intros add real friction to a practice built around the same 8 movements every session, so the built-in stick-figure diagram (`EX_INFO[name].illo()`) is what shows by default. A small "Not clear? Watch on YouTube" text link (`youtubeSearchUrl(name)`) sits underneath the diagram as a fallback, deliberately understated so it doesn't compete with the instant, ad-free default.
 - The box-breathing meditation screen (`renderMeditation`/`getMedState`) from the earlier iteration — removed when the program switched to Baduanjin, since breath is threaded through each of the 8 movements individually rather than bolted on as a separate closing exercise. Don't re-add it without re-introducing a matching `kind:'meditation'` timeline item.
 
 **Important — shared origin, separate storage.** Both apps are GitHub Pages project sites under `cwinter1.github.io` (different paths, same origin), so `localStorage` is shared between them. Q·Flow uses the `qf.*` key prefix (`qf.progress`, `qf.sessions`) specifically to avoid colliding with the workout app's `mf.*` keys. Never rename these to `mf.*` or anything that could collide.
@@ -138,6 +138,10 @@ Phase `name` fields are short ordinals ("First".."Eighth") — that's what shows
 ### Illustrations
 
 `svgFigure(inner)` wraps a `viewBox="0 0 100 140"` stick figure. Shared helpers: `bone(points, color)` (a `<polyline>` limb — 2+ points), `headC(cx, cy, color)` (head circle), `groundLine()`, and stance presets `LEGS_NARROW()` / `LEGS_HORSE()`. Each movement's `illo()` composes these with hand-picked coordinates for that pose — there's no generic pose parameterization, just 8 hand-tuned diagrams. Left/right limbs always originate from distinct shoulder points (`x=40` / `x=60`, not a shared `x=50` point) — sharing one origin makes two opposite-reaching limbs visually merge into a single line. "Two Hands Hold the Feet" is drawn side-on rather than front-facing, since a forward fold collapses onto one vertical line in a frontal view.
+
+### Voice readout
+
+`speakText(text)` uses the browser's built-in `speechSynthesis` API (no external service, works offline once the page is loaded, native to iOS Safari) to read a movement's `desc` aloud. Wired to a small speaker-icon button (`iconSpeaker`) next to the "How to do it" header on the preview screen — tap it, it cancels any in-flight utterance and speaks `${exName}. ${desc}`.
 
 ---
 
