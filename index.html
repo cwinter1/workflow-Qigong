@@ -552,7 +552,10 @@ function renderHome(root) {
   const progBtn = el('button', `appearance:none;background:transparent;border:1px solid ${T.hairline};color:${T.fg};border-radius:6px;padding:14px 16px;font-family:${T.mono_ff};font-size:11px;letter-spacing:1.5px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;width:100%;`);
   progBtn.innerHTML = `<span>תוכנית 4 השבועות</span><span style="opacity:0.6">${iconArrow(T.fg)}</span>`;
   progBtn.onclick = () => { state.view = 'program'; render(); };
-  bottomLinks.append(progBtn);
+  const morningFlowBtn = el('button', `appearance:none;background:transparent;border:1px solid ${T.hairline};color:${T.fg};border-radius:6px;padding:14px 16px;font-family:${T.mono_ff};font-size:11px;letter-spacing:1.5px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;width:100%;`);
+  morningFlowBtn.innerHTML = `<span>Morning Flow</span><span style="opacity:0.6">${iconArrow(T.fg)}</span>`;
+  morningFlowBtn.onclick = () => { window.location.href = 'https://cwinter1.github.io/workout/'; };
+  bottomLinks.append(progBtn, morningFlowBtn);
 
   pad.append(eyebrow, titleWrap, phraseCard, beginBtn, phaseBreak, weekSection, progGrid, bottomLinks, el('div', `height:40px;`));
   scroll.appendChild(pad);
