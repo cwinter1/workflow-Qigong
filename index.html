@@ -571,7 +571,7 @@ function renderPhaseChips(day) {
     const num = el('span', `font-family:${T.mono_ff};font-size:10px;color:${T.mono};width:18px;letter-spacing:1px;`);
     num.textContent = `0${i+1}`;
     const name = el('span', `font-family:${T.display};font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`);
-    name.textContent = ph.name;
+    name.textContent = ph.exercises[0].name;
     const bar = el('div', `flex:1;height:6px;background:${T.pill};border-radius:2px;position:relative;`);
     const fill = el('div', `position:absolute;left:0;top:0;bottom:0;width:${pct}%;background:${i === day.phases.length-1 ? T.accent : T.fg};border-radius:2px;`);
     bar.appendChild(fill);
