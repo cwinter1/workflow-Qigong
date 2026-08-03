@@ -86,6 +86,14 @@ function youtubeSearchUrl(nameEn) {
   return `https://www.youtube.com/results?search_query=${encodeURIComponent(nameEn + ' baduanjin qigong')}`;
 }
 
+function renderYoutubeIframe(videoId) {
+  const iframe = el('iframe', `width:100%;height:auto;aspect-ratio:16/9;border:none;border-radius:8px;`);
+  iframe.src = `https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0&fs=0`;
+  iframe.setAttribute('allowfullscreen', '');
+  iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+  return iframe;
+}
+
 // Toggle: tap once to start reading, tap again (or navigate away) to stop
 // immediately rather than waiting for the utterance to finish on its own.
 let _speakingBtn = null;
@@ -215,71 +223,35 @@ function getExInfo(name) {
 const EX_INFO = {
   'שתי ידיים תומכות בשמיים': {
     desc: 'עמדו עם הרגליים ברוחב הכתפיים, שזרו את האצבעות והפנו את כפות הידיים כלפי מעלה מול הבטן. שאפו אוויר תוך כדי לחיצת כפות הידיים מעלה, ישרו את כל עמוד השדרה. נשפו תוך כדי הפרדת הידיים והורדתן בחזרה. התחילו מעמידה זקופה ורגועה לפני החזרה הראשונה.',
-    // Neutral = hands meeting at the belly (the real starting point), not arms
-    // hanging at the sides — animates the full belly→overhead→belly rep.
-    illo: (animated) => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg) + headC(50,18,T.fg)
-      + movingBone('40,36 44,50 48,62', '40,36 28,22 32,6', T.accent, animated)
-      + movingBone('60,36 56,50 52,62', '60,36 72,22 68,6', T.accent, animated)),
+    videoId: 'oLwK0WKrabQ',
   },
   'מתיחת הקשת לירות בנץ': {
     desc: 'מעמידת פרשה, הצליבו את הזרועות מול החזה. מתחו זרוע אחת הצידה כאילו מותחים קשת, בעוד היד השנייה מושכת אחורה כמו אוחזת במיתר. נשפו במלואו בכל מתיחה, ואז החליפו צד.',
-    // Neutral = arms crossed at the chest. Alternates: draw right / draw left.
-    illo: (animated) => svgFigure(groundLine() + LEGS_HORSE() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
-      + movingBone('60,36 50,42 42,44', ['60,36 78,32 96,30', '60,36 74,44 80,54'], T.accent, animated)
-      + movingBone('40,36 50,44 58,46', ['40,36 26,44 20,54', '40,36 22,32 4,30'], T.accent, animated)),
+    videoId: 'dwWnsjSiVL0',
   },
   'הפרדת שמיים וארץ': {
     desc: 'עמידה זקופה, הרימו זרוע אחת מעלה עם כף היד לוחצת כלפי מעלה, בעוד היד השנייה לוחצת כלפי מטה לצד גופכם. הרגישו את עמוד השדרה מתארך בין שתי הלחיצות, ואז החליפו צד.',
-    // Neutral = hands together at the chest. Alternates which arm presses up vs down.
-    illo: (animated) => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
-      + movingBone('60,36 52,44 50,50', ['60,36 68,20 62,4', '60,36 66,54 72,70'], T.accent, animated)
-      + movingBone('40,36 48,44 50,50', ['40,36 34,54 28,70', '40,36 32,20 38,4'], T.accent, animated)),
+    videoId: '3aq2-U8D200',
   },
   'הינשוף החכם מביט לאחור': {
     desc: 'עמדו רגועים עם הידיים לצדי הגוף. סובבו לאט את הראש להביט מאחוריכם מעל כתף אחת, תוך שמירה על האגן פונה קדימה. חזרו למרכז וחזרו על הצד השני.',
-    // Head turns to both sides in turn, not just one.
-    illo: (animated) => svgFigure(groundLine() + LEGS_NARROW() + bone('50,34 50,75', T.fg)
-      + bone('40,36 34,55 32,70', T.fg) + bone('60,36 66,55 68,70', T.fg)
-      + movingHead(50,20, [58,42], [20,20], T.accent, animated)
-      + (animated
-          ? `<polyline points="70,16 80,20 74,26" fill="none" stroke="${T.accent}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="opacity" values="0;1;0;0;0" dur="2.6s" repeatCount="indefinite"/></polyline>`
-            + `<polyline points="30,16 20,20 26,26" fill="none" stroke="${T.accent}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="opacity" values="0;0;0;1;0" dur="2.6s" repeatCount="indefinite"/></polyline>`
-          : bone('70,16 80,20 74,26', T.accent))),
+    videoId: 'xvMItj2QOGQ',
   },
   'נדנוד הראש וניעור הזנב': {
     desc: 'מעמידת פרשה נמוכה, הטו את הגו מעט קדימה וסובבו את הראש והגו העליון בקשת רחבה לצד אחד, כאילו מנערים חום דרך עצם הזנב. החליפו צדדים לאט.',
-    // Torso sways through both sides of the arc, not just one.
-    illo: (animated) => svgFigure(groundLine() + LEGS_HORSE()
-      + movingBone('50,75 50,42 50,18', ['50,75 68,42 78,18', '50,75 32,42 22,18'], T.accent, animated)
-      + movingHead(50,18, [78,22], [18,18], T.accent, animated)
-      + movingBone('50,42 34,58', ['68,42 84,58', '32,42 16,58'], T.fg, animated)
-      + movingBone('50,42 66,58', ['68,42 50,62', '32,42 50,62'], T.fg, animated)),
+    videoId: 'NrsDl_LhbUo',
   },
   'שתי ידיים אוחזות בכפות הרגליים': {
     desc: 'התכופפו קדימה מהמותניים ושלחו את שתי הידיים לעבר כפות הרגליים, הברכיים רכות. לאחר מכן הפכו את התנועה, החליקו את הידיים במעלה הרגליים והגב עד לעמידה, תוך קשת עדינה לאחור בשיא התנועה.',
-    // Drawn side-on — a front view collapses a forward fold onto one vertical line.
-    // Full cycle: stand → fold to the feet → stand → arch gently back → stand.
-    illo: (animated) => svgFigure(groundLine() + bone('38,78 40,108 42,130', T.fg)
-      + movingBone('38,78 40,50 40,34', ['38,78 56,80 70,85', '38,78 34,50 30,32'], T.fg, animated)
-      + movingHead(40,28, [82,26], [87,26], T.fg, animated)
-      + movingBone('40,34 38,55 36,68', ['70,85 80,108 76,129', '30,32 26,50 24,65'], T.accent, animated)),
+    videoId: '6lHKdnE729c',
   },
   'קמיצת אגרופים ומבט זועם': {
     desc: 'מעמידת פרשה, קמצו את שתי הידיים לאגרופים ליד המותניים. הכו אגרוף אחד קדימה עם נשיפה נחרצת ומבט ממוקד, ואז משכו אותו בחזרה וחזרו עם הצד השני.',
-    // Both fists take a turn punching, not just one.
-    illo: (animated) => svgFigure(groundLine() + LEGS_HORSE() + bone('50,34 50,75', T.fg) + headC(50,20,T.fg)
-      + movingBone('40,36 36,48 34,60', ['40,36 24,34 8,32', '40,36 36,48 34,60'], T.accent, animated)
-      + movingBone('60,36 64,48 62,60', ['60,36 64,48 62,60', '60,36 76,34 92,32'], T.accent, animated)),
+    videoId: '3FJy0EDoYK0',
   },
   'קפיצות קלות על קצות האצבעות והעקבים': {
     desc: 'התרוממו על קצות כפות הרגליים, ואז הורידו את העקבים לרצפה בניתור קל וקפיצי. תנו לתחושה לעבור בעדינות דרך כל הגוף. סיימו את החזרה האחרונה בעמידה שקטה למשך כמה נשימות.',
-    illo: (animated) => svgFigure(groundLine()
-      + movingBone('50,75 43,105 41,120 40,130', '50,75 43,105 39,124 47,136', T.fg, animated, '1.8s')
-      + movingBone('50,75 57,105 59,120 60,130', '50,75 57,105 61,124 53,136', T.fg, animated, '1.8s')
-      + bone('50,34 50,75', T.fg) + movingHead(50,20, 50, 18, T.fg, animated, '1.8s')
-      + bone('40,36 36,55 38,68', T.fg) + bone('60,36 64,55 62,68', T.fg)
-      + `<path d="M30,120 Q34,113 38,120" fill="none" stroke="${T.accent}" stroke-width="2.5" stroke-linecap="round">${animated ? '<animate attributeName="opacity" values="1;1;0;0;1" dur="1.8s" repeatCount="indefinite"/>' : ''}</path>`
-      + `<path d="M62,120 Q66,113 70,120" fill="none" stroke="${T.accent}" stroke-width="2.5" stroke-linecap="round">${animated ? '<animate attributeName="opacity" values="1;1;0;0;1" dur="1.8s" repeatCount="indefinite"/>' : ''}</path>`),
+    videoId: 'IlVU93_YLuY',
   },
 };
 
@@ -724,19 +696,9 @@ function renderPreview(root) {
   };
   chips.append(makeChip(`שבוע ${state.week}`, cur.variant), makeChip('משך', fmt(cur.seconds)));
 
-  // Built-in stick-figure diagram — no video, so no ads/intros/loading before
-  // a movement that repeats every single session. A small YouTube fallback
-  // link sits underneath for whenever the diagram alone isn't enough.
   const illoBox = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:8px;padding:8px 16px;`);
-  if (info.illo) {
-    const illoWrap = el('div', ``);
-    illoWrap.innerHTML = info.illo();
-    const watchLink = el('a', `display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:${T.mono};font-family:${T.mono_ff};font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 0 4px;`);
-    watchLink.href = youtubeSearchUrl(cur.exNameEn);
-    watchLink.target = '_blank';
-    watchLink.rel = 'noopener';
-    watchLink.innerHTML = `<span>לא ברור? צפו ביוטיוב</span>`;
-    illoBox.append(illoWrap, watchLink);
+  if (info.videoId) {
+    illoBox.appendChild(renderYoutubeIframe(info.videoId));
   }
 
   const descBox = el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:6px;padding:16px;`);
@@ -829,11 +791,15 @@ function renderSession(root) {
   const variant = el('div', `font-family:${T.mono_ff};font-size:13px;color:${T.fg};letter-spacing:0.5px;`);
   variant.textContent = cur.variant;
 
-  // Animated diagram — loops neutral→pose→neutral so there's something
-  // moving to copy along with in real time while the timer counts down.
   const info = getExInfo(cur.exName);
-  const illoBox = info.illo ? el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:8px;padding:4px 16px;`) : null;
-  if (illoBox) illoBox.innerHTML = info.illo(true);
+  const illoBox = (info.videoId || info.illo) ? el('div', `background:${T.card};border:1px solid ${T.hairline};border-radius:8px;padding:4px 16px;`) : null;
+  if (illoBox) {
+    if (info.videoId) {
+      illoBox.appendChild(renderYoutubeIframe(info.videoId));
+    } else if (info.illo) {
+      illoBox.innerHTML = info.illo(true);
+    }
+  }
 
   const timerCard = el('div', `border:1px solid ${T.hairline};border-radius:6px;padding:20px 22px;display:flex;justify-content:space-between;align-items:flex-end;`);
   const timerL = el('div', ``);
