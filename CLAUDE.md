@@ -4,7 +4,7 @@
 
 **Q·Flow** is a personal morning Qigong practice app for Chris, built as a sibling to the **Morning Flow / B·Restore** strength-and-mobility app (`cwinter1/workout`). Where B·Restore undoes what desk work does to the body through strength, posture work, and yoga, Q·Flow is a quieter counterpart built around **Baduanjin (Eight Pieces of Brocade)** — the standardized, traditional 8-movement qigong set. The app went through one earlier iteration built around a general, non-standardized flowing-qigong routine (5 broad phases per session); it was replaced with the actual Baduanjin set once it became clear that's what was wanted.
 
-The app is a 4-week program: 20 minutes, 3 mornings a week. The app title is in Hebrew: **Q·Flow · כריס** (כריס = Chris). Layout is `lang="he" dir="rtl"`, and — unlike the workout app, which keeps English body copy inside its RTL shell — **all in-app text and the voice readout are in Hebrew** (see "Localization" below). Same audience and constraints as B·Restore: iOS Safari, one person, Israel.
+The app is a 4-week program: 20 minutes, 3 mornings a week. The app is bilingual: **English by default, Hebrew on request** via the toggle button (top of Home, Program and Learn screens). The Hebrew title is **Q·Flow · כריס** (כריס = Chris); Hebrew mode switches the layout to `lang="he" dir="rtl"` and the voice readout to `he-IL` (see "Localization" below). Same audience and constraints as B·Restore: iOS Safari, one person, Israel.
 
 **Live URL**: https://cwinter1.github.io/workflow-Qigong/ (GitHub Pages, deploys from `main`).
 
@@ -25,7 +25,7 @@ This is a **separate app**, not a mode inside the workout app. It intentionally 
 
 It intentionally does **not** carry over:
 - Garmin sleep/activity tracking, body measurements, progress photos, Canvas share cards, Google Sheets sync, or the `puter.ai` voice-coaching integration — none of those map onto a breathwork practice and weren't requested
-- Video as the *primary* movement reference — ads and intros add real friction to a practice built around the same 8 movements every session, so the built-in stick-figure diagram (`EX_INFO[name].illo()`) is what shows by default. A small "Not clear? Watch on YouTube" text link (`youtubeSearchUrl(name)`) sits underneath the diagram as a fallback, deliberately understated so it doesn't compete with the instant, ad-free default.
+- Long videos. Each movement has a short demo clip (see "Clips" below), tap-to-play, never autoplayed, capped at 60 seconds.
 - The box-breathing meditation screen (`renderMeditation`/`getMedState`) from the earlier iteration — removed when the program switched to Baduanjin, since breath is threaded through each of the 8 movements individually rather than bolted on as a separate closing exercise. Don't re-add it without re-introducing a matching `kind:'meditation'` timeline item.
 
 **Important — shared origin, separate storage.** Both apps are GitHub Pages project sites under `cwinter1.github.io` (different paths, same origin), so `localStorage` is shared between them. Q·Flow uses the `qf.*` key prefix (`qf.progress`, `qf.sessions`) specifically to avoid colliding with the workout app's `mf.*` keys. Never rename these to `mf.*` or anything that could collide.
@@ -38,7 +38,7 @@ It intentionally does **not** carry over:
 - iOS Safari only
 - `localStorage` only — no backend, no sync, no account
 - No emojis anywhere
-- No hardcoded/unverified video IDs — text-only movement guidance
+- No guessed video IDs. Every id in `BADUANJIN_PHASES[].exercises[].clips` must be checked first: `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=<id>&format=json` returns 200 (exists, embeddable; 401 = embedding disabled, do not use) and the returned title names that exact movement. YouTube's watch page cannot be fetched from the build tooling, so a clip's length cannot be checked ahead of time; the player enforces the limit instead (see "Clips").
 - Never push directly to main
 
 ---
@@ -80,6 +80,7 @@ render()
   → renderSession()    — active timer + movement display
   → renderDone()       — post-practice completion screen
   → renderProgram()    — program overview (the 8 movements, shown once) + 4-week progress grid
+  → renderExercises()  — "Learn the movements": all 8 movements with how-to text and a demo clip each
 ```
 
 No `renderMeasurements()` / no `renderRest()` / no `renderMeditation()` — this app has no body-measurement tracking, no inter-exercise rest periods, and no separate breathing-meditation screen (see "Relationship to `cwinter1/workout`" above for why the meditation screen was removed).
@@ -139,6 +140,14 @@ Phase `name` fields are short ordinals ("First".."Eighth") — that's what shows
 
 `getExInfo(name)` falls back to a generic cue for any name not in `EX_INFO` (no `illo` fallback — `renderPreview` just skips the diagram box if `info.illo` is absent).
 
+### Clips (demo videos)
+
+`BADUANJIN_PHASES[].exercises[0].clips` is `[primary, alternative]` YouTube ids. `renderClip(clips)` (used on Preview, Session and the Learn screen) shows a thumbnail with a play button; tapping loads the YouTube IFrame API player with `end=CLIP_MAX` (60 s) so playback always stops at one minute, then shows the real length once playing ("Clip length 0:34", or "Full video is 2:10. Only the first minute plays."). "Another clip" cycles to the alternative, "Open on YouTube" opens the full video. Primaries are Shorts where a correct one exists (usually well under a minute); movements 2 and 4 only had regular instruction videos, hence the cap.
+
+History: the earlier `EX_INFO[...].videoId` values were unverified and several pointed at the wrong movement (e.g. Separate Heaven and Earth showed a "Draw the Bow" video) and autoplayed. They were replaced by the verified `clips` above (2026-10-27). Do not reintroduce ids without the oEmbed + title check.
+
+The stick-figure helpers below (`svgFigure`, `bone`, `headC`, ...) are currently unused: `EX_INFO` has no `illo` entries.
+
 ### Illustrations
 
 `svgFigure(inner)` wraps a `viewBox="0 0 100 140"` stick figure. Shared helpers: `bone(basePts, color, frames?, dur?)` (a `<polyline>` limb — 2+ points) and `headC(baseCx, baseCy, color, framesCx?, framesCy?, dur?)` (head circle), `groundLine()`, and stance presets `LEGS_NARROW()` / `LEGS_HORSE()`. Each movement's `illo(animated)` composes these with hand-picked coordinates for that pose — there's no generic pose parameterization, just 8 hand-tuned diagrams. Left/right limbs always originate from distinct shoulder points (`x=40` / `x=60`, not a shared `x=50` point) — sharing one origin makes two opposite-reaching limbs visually merge into a single line. "Two Hands Hold the Feet" is drawn side-on rather than front-facing, since a forward fold collapses onto one vertical line in a frontal view.
@@ -157,9 +166,9 @@ This exists specifically so there's something to move with in real time on the t
 
 ### Localization
 
-All in-app text is Hebrew — there's no i18n layer or language switch, since this is a single-language app for one Hebrew-speaking user. Translated content lives directly in the data (`BADUANJIN_PHASES`, `EX_INFO`, `HOME_PHRASES`, `pickMessage`'s message pools) and inline in each `renderX()` function's UI strings.
+The app has a small two-language layer: `LANG` (`'en'` default, `'he'`, saved in `localStorage` key `qf.lang`), `t(he, en)` to pick a string, `setLang()` / `applyLang()` (sets `<html lang dir>` and the page title) and `langButton()`. Data carries both languages side by side (`name`/`nameEn`, `intent`/`intentEn`, `titleEn`/`kickerEn`/`tagEn` on days, `desc`/`descEn` in `EX_INFO`, `[he, en]` pairs in `HOME_PHRASES`, both texts in `pickMessage`). Every new UI string must go through `t(he, en)`. `EX_INFO` stays keyed by the Hebrew movement name. Rep labels (`6 חזרות`, `4 לכל צד`) are stored in Hebrew and converted by `variantText()`.
 
-One deliberate exception: each exercise carries both `name` (Hebrew, displayed and spoken) and `nameEn` (English, used only by `youtubeSearchUrl(nameEn)`). Baduanjin tutorials are overwhelmingly in English/Chinese, so an English search query surfaces far better results than a Hebrew one would for this Chinese-origin content — don't switch that link to the Hebrew name.
+`youtubeSearchUrl(nameEn)` is kept for searches and always uses the English movement name: Baduanjin tutorials are overwhelmingly English/Chinese, so an English query surfaces far better results than a Hebrew one.
 
 `W{n}`/`D{n}` week/day labels are kept as Latin-letter mono abbreviations throughout (headers, chips, progress grid) rather than translated — this matches the sibling workout app's established convention of treating them as compact technical labels, not prose.
 
@@ -182,8 +191,8 @@ Session lifecycle (`startSession`, `pickDay`, `startTimer`, `updateTimerDisplay`
 - Don't add emojis
 - Don't push directly to main
 - Don't add colors outside the `T` object or fonts beyond the four loaded
-- Don't make video the primary movement reference (hardcoded IDs are unverifiable, and ads/intros add friction to a same-movements-every-session practice) — the built-in SVG illustration is the default; the YouTube search link is a small, secondary fallback underneath it
+- Don't autoplay video, don't remove the 60-second `end` cap, and don't add clip ids without the oEmbed + title check
 - Don't reuse `mf.*` localStorage keys — this app shares an origin with `cwinter1/workout`
-- Don't switch the YouTube search link to the Hebrew movement name, or drop the `nameEn` field — English search terms surface real tutorials for this content far better than Hebrew ones do
+- Don't add UI text without both languages (`t(he, en)`), and don't drop the `nameEn` field — English search terms surface real tutorials far better than Hebrew ones
 - Don't port over Garmin/measurements/photo-journal features unless specifically asked — they don't map onto a breathwork practice
 - Don't add a rotating pool of "ancient Chinese proverbs" or invented historical color. Discussed and explicitly declined (2026-07-06): a lot of what circulates online attributed to Confucius/Laozi is fabricated or mistranslated, and a large AI-generated "wisdom" pool risks presenting invented quotes as authentic. If cultural/historical depth is wanted later, keep it narrow and verifiable — e.g. one factual paragraph on Baduanjin's actual history (roughly Song Dynasty origin, the Yue Fei attribution being legend rather than confirmed fact) on the Program screen, or a couple of properly sourced classical lines — not a large invented pool.
